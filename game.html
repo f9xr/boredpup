@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loading game… — BoredPuP</title>
+  <meta name="description" content="Play free online games instantly on BoredPuP — no downloads, no sign-ups.">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="BoredPuP">
+  <meta id="ogTitle" property="og:title" content="Play free online games — BoredPuP">
+  <meta id="ogDesc" property="og:description" content="Play instantly in your browser. No downloads.">
+  <meta id="ogImage" property="og:image" content="">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" aria-label="BoredPuP home">
+        <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+        Bored<span style="color: var(--mute)">PuP</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="category.html">All games</a>
+        <a href="#" data-action="random">Surprise me</a>
+      </nav>
+      <div class="nav-search">
+        <form class="search" action="search.html" method="get" role="search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+        </form>
+        <a class="btn btn-primary" href="#" data-action="random">Play now</a>
+      </div>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Home</a>
+    <a href="category.html">All games</a>
+    <a href="#" data-action="random">Surprise me</a>
+    <a href="search.html">Search</a>
+  </div>
+
+  <main class="glow-section glow-blue">
+    <div class="container-narrow" style="max-width: 1040px;">
+      <div style="padding-top: var(--space-xxl);">
+        <nav class="crumbs" aria-label="Breadcrumb" id="crumbs">
+          <a href="index.html">Home</a>
+          <span aria-hidden="true">/</span>
+          <span>Loading…</span>
+        </nav>
+
+        <div id="notFound" class="empty-state" style="margin-top: var(--space-xxl); display: none;">
+          <div class="big">Game not found</div>
+          <p>The game you're looking for isn't in the catalog. <a class="inline-link" href="search.html">Search again</a> or <a class="inline-link" href="category.html">browse all games</a>.</p>
+        </div>
+
+        <div class="player-shell" id="playerShell">
+          <div class="player-frame" id="playerFrame">
+            <div id="iframeSlot" style="background: var(--surface-deep); aspect-ratio: 4 / 3;">
+              <div class="skeleton" style="border: 0; border-radius: 0; height: 100%;"></div>
+            </div>
+            <div class="player-toolbar">
+              <span class="play-hint">Loading game…</span>
+              <span class="spacer"></span>
+              <button class="btn btn-outline btn-sm" id="refreshBtn" type="button">Restart</button>
+              <button class="btn btn-outline btn-sm" id="fullBtn" type="button">Fullscreen</button>
+              <button class="btn btn-outline btn-sm" id="shareBtn" type="button">Share</button>
+            </div>
+          </div>
+
+          <h1 class="heading-md" id="gameTitle" style="margin-top: var(--space-xxl); letter-spacing: -0.02em;">Loading…</h1>
+          <div class="tag-row" id="tagRow" style="margin-top: var(--space-md);"></div>
+
+          <div class="info-card" id="howToCard" style="display:none;">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              How to play
+            </h3>
+            <p id="instructions"></p>
+          </div>
+
+          <div class="info-card" id="aboutCard" style="display:none;">
+            <h3>About this game</h3>
+            <p id="description"></p>
+          </div>
+
+          <section style="margin-top: var(--space-xxxl);">
+            <div class="sec-head">
+              <div>
+                <h2 class="display-lg">Game walkthrough</h2>
+                <p class="sub mute">Watch how it's done before you play</p>
+              </div>
+            </div>
+            <div class="code-window">
+              <div class="code-window-bar">
+                <span class="traffic-dots" aria-hidden="true">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </span>
+                <span class="code-window-title">gamemonetize-video · walkthrough</span>
+              </div>
+              <div class="code-window-body">
+                <div id="walkthroughSlot">
+                  <div id="gamemonetize-video">
+                    <div class="walkthrough-empty" style="padding: var(--space-lg);">Preparing walkthrough…</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="relatedSection" style="margin-top: var(--space-xxxl);">
+            <div class="sec-head" style="margin-bottom: var(--space-xl);">
+              <div>
+                <h2 class="display-lg" id="relatedTitle">More to play</h2>
+                <p class="sub mute">Hand-picked from the same family</p>
+              </div>
+            </div>
+            <div class="game-grid" id="relatedGrid"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="nav-logo" href="index.html">
+            <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+            Bored<span style="color: var(--mute)">PuP</span>
+          </a>
+          <p>Welcome to BoredPuP, home of thousands of free online video games
+          that can be played on nearly every phone, tablet, and PC — with no
+          software downloads necessary.</p>
+        </div>
+        <div>
+          <h4>Play</h4>
+          <a href="category.html">All games</a>
+          <a href="index.html#new">New games</a>
+          <a href="index.html#trending">Good picks</a>
+          <a href="#" data-action="random">Random game</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <div id="footerCats"></div>
+        </div>
+        <div>
+          <h4>About</h4>
+          <a href="https://www.gamemonetize.com/" rel="noopener" target="_blank">GameMonetize</a>
+          <a href="search.html">Search</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 BoredPuP — free online games for the bored.</span>
+        <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>

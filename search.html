@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search games — BoredPuP</title>
+  <meta name="description" content="Search thousands of free online games on BoredPuP and play instantly in your browser.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" aria-label="BoredPuP home">
+        <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+        Bored<span style="color: var(--mute)">PuP</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="category.html">All games</a>
+        <a href="#" data-action="random">Surprise me</a>
+      </nav>
+      <div class="nav-search">
+        <form class="search" action="search.html" method="get" role="search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+        </form>
+        <a class="btn btn-primary" href="#" data-action="random">Play now</a>
+      </div>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Home</a>
+    <a href="category.html">All games</a>
+    <a href="#" data-action="random">Surprise me</a>
+    <a href="search.html">Search</a>
+  </div>
+
+  <main class="glow-section glow-yellow">
+    <div class="container">
+      <div style="padding-top: var(--space-xxxl); padding-bottom: var(--space-xxl); max-width: 720px;">
+        <h1 class="display-xl">Search games</h1>
+        <form class="search" action="search.html" method="get" role="search" style="margin-top: var(--space-xxl);">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <input type="search" name="q" value="" id="searchInput" placeholder="Try “racing”, “bubble”, “snake”…" aria-label="Search games" autofocus>
+        </form>
+        <p class="results-count" id="resultsCount" style="margin-top: var(--space-lg);">Search titles, tags, and categories.</p>
+      </div>
+
+      <div class="game-grid" id="grid"></div>
+      <div style="text-align:center; margin: var(--space-xxxl) 0 var(--space-section);">
+        <button class="btn btn-ghost btn-lg" id="loadMore" style="display:none;">Load more results</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="nav-logo" href="index.html">
+            <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+            Bored<span style="color: var(--mute)">PuP</span>
+          </a>
+          <p>Welcome to BoredPuP, home of thousands of free online video games
+          that can be played on nearly every phone, tablet, and PC — with no
+          software downloads necessary.</p>
+        </div>
+        <div>
+          <h4>Play</h4>
+          <a href="category.html">All games</a>
+          <a href="index.html#new">New games</a>
+          <a href="index.html#trending">Good picks</a>
+          <a href="#" data-action="random">Random game</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <div id="footerCats"></div>
+        </div>
+        <div>
+          <h4>About</h4>
+          <a href="https://www.gamemonetize.com/" rel="noopener" target="_blank">GameMonetize</a>
+          <a href="search.html">Search</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 BoredPuP — free online games for the bored.</span>
+        <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/search.js"></script>
+</body>
+</html>

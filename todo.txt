@@ -1,0 +1,131 @@
+Name BoredPuP
+
+
+Games Feed from GameMonetize
+JSON format
+
+https://rss.gamemonetize.com/rssfeed.php?format=json&category=All&type=html5&popularity=newest&company=All&amount=All
+
+XML format
+
+https://rss.gamemonetize.com/rssfeed.php?format=xml&category=All&type=html5&popularity=newest&company=All&amount=All
+
+Select all requirements to your feed (RSS, JSON, category, game type ..) and choose which games you want to grab to your game website.
+
+Simply generate your game feed in valid RSS or JSON format. Our game feed works with MyArcadePlugin or custom RSS / JSON aggregators.
+
+Grab all games to your portals by simply click and enjoy latest and best games with great user engagement!
+
+
+use these feed urls to create a online gaming website where people can play online games in their browser
+
+demo JSON feed:
+{
+    "id": "37923",
+    "title": "Monsters Wheels 2",
+    "description": "Monsters Wheels 2 is a monster truck game where every event asks something different. Race a packed grid to the finish line, flatten a row of parked cars, land the biggest backflip you can or beat the clock &amp;mdash; 24 levels in total, spread across jungles, a beach, an amusement park and the Arizona desert. Three monster trucks are available, each with upgrades for engine, suspension, tyres and nitro. Prize money from every event goes straight into the garage.",
+    "instructions": "PC Arrow Up W mdash accelerate Arrow Down S mdash brake and reverse Arrow Left Right mdash lean back and forward in the air Space X mdash nitro Mobile Acceleration - automatic Nitro button - Nitro Tilt buttons - rotate left right",
+    "url": "https://html5.gamemonetize.co/um26jcww9dpyhc9013umby7n5lklwacq/",
+    "category": "Racing",
+    "tags": "Car, car tuning, monstertruck, Truck, trucks",
+    "thumb": "https://img.gamemonetize.com/um26jcww9dpyhc9013umby7n5lklwacq/512x384.jpg",
+    "width": "800",
+    "height": "600"
+  },
+
+
+
+u gotta embed the url based on the width and height 
+
+BoredPuP features the latest and best free online games. You can enjoy playing fun games without interruptions, no downloads. Just load up your favorite games instantly in your web browser and enjoy the experience. You can play our games on desktop or mobile devices. That includes everything from desktop PCs, laptops, and Chromebooks, to the latest smartphones and tablets from Apple and Android.
+
+
+Welcome to BoredPuP, home of thousands of free online video games that can be played on nearly every phone, tablet, and PC, with no software downloads necessary. Our constantly updating library of free games includes classic games like Bubble Spinner, Mahjongg, and Impossible Quiz, along with new and current favorites like Fruit Merge, Little Big Snake, and Apes.io. Whether you're looking for adventure games, shooting games, matching games, daily games, or 'endless' games, you're sure to find something in our expansive library of over 5000 free games that you can play right now!
+
+
+
+Website should look alike:
+https://www.crazygames.com/
+https://poki.com/
+https://playhop.com/
+https://www.addictinggames.com/
+
+
+Walkthroughs / Get Code
+Please copy and paste the following code into each game page on your website to display the game walkthrough properly.
+
+<div id="gamemonetize-video"></div>
+<script type="text/javascript">
+   window.VIDEO_OPTIONS = {
+       gameid : "4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
+       width  : "100%",
+       height : "480px",
+       color  : "#3f007e",
+       getads  : "true"
+   };
+   (function (a, b, c) {
+      var d = a.getElementsByTagName(b)[0];
+      a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://api.gamemonetize.com/video.js", d.parentNode.insertBefore(a, d))
+   })(document, "script", "gamemonetize-video-api"); 
+</script>  
+
+Example to show Walkthroughs
+
+
+<div id="gamemonetize-video"></div>
+<script type="text/javascript">
+   window.VIDEO_OPTIONS = {
+       gameid : "4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
+       width  : "100%",
+       height : "480px",
+       color  : "#3f007e",
+       getAds  : "false"
+   };
+   (function (a, b, c) {
+      var d = a.getElementsByTagName(b)[0];
+      a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://api.gamemonetize.com/video.js", d.parentNode.insertBefore(a, d))
+   })(document, "script", "gamemonetize-video-api"); 
+</script>  
+
+
+
+
+
+
+
+
+
+
+Required Parameters:
+GAME ID Enter a game ID (from GameMonetize) to match the correct game walkthrough
+
+WIDTH Enter the width of the video player, according your needs (eg. 600px or 100%)
+
+HEIGHT Enter the height of the video player, according your needs (eg. 480px)
+
+COLOR Enter the RGB color of the video player, according your needs (eg. #3f007e, #9065ff)
+
+GET ADS Show or hide ads (true / false)
+
+FAQ:
+How many ads contains walkthroughs?
+Walkthroughs contain only 2 ads (video ad at the beginning and banner ad) so you can be sure that there won't be annoying ads
+
+Can I hide ads?
+Yes, you can hide ads with settings getAds : "false"
+
+Who uploading game walkthroughs?
+The game walkthroughs are added daily by our editors to provide best video experience!
+
+How my earnings are tracked?
+The earnings from game walkthroughs are tracked throught the domain name, so you don't need to add an publisher ID.
+
+Do I need to add my domain?
+Yes, please add your domain name under this link and you will get revenue from game walkthroughs
+
+What happens when walkthroughs is not available for some game?
+When this happens, don't worry because some other game from the walkthrough catalog will be displayed, meanwhile our editors
+prepare another walkthrough for the missing game in the catalog. This means that our walkthroughs are availanle for all games in 99% cases.
+
+
+use @DESIGN.md file

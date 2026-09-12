@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BoredPuP — Free Online Games, Play Instantly</title>
+  <meta name="description" content="BoredPuP is home to thousands of free online games. Play instantly in your browser on PC, tablet, and mobile — no downloads, no interruptions.">
+  <meta property="og:title" content="BoredPuP — Free Online Games">
+  <meta property="og:description" content="Thousands of free online games, playable instantly on any device.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" aria-label="BoredPuP home">
+        <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+        Bored<span style="color: var(--mute)">PuP</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="category.html">All games</a>
+        <a href="#" data-action="random">Surprise me</a>
+      </nav>
+      <div class="nav-search">
+        <form class="search" action="search.html" method="get" role="search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+        </form>
+        <a class="btn btn-primary" href="#" data-action="random">Play now</a>
+      </div>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Home</a>
+    <a href="category.html">All games</a>
+    <a href="#" data-action="random">Surprise me</a>
+    <a href="search.html">Search</a>
+  </div>
+
+  <main>
+
+    <section class="hero glow-section glow-orange" id="top">
+      <div class="hero-inner">
+        <div class="hero-kicker">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="badge-pill" style="color: var(--accent-green)">5,000+ games free to play</span>
+        </div>
+        <h1 class="hero-title">Bored?<br>Play.</h1>
+        <p class="hero-subtitle">
+          BoredPuP is home to thousands of free online games — playable on
+          nearly every phone, tablet, and PC. No downloads, no sign-ups, no
+          interruptions. Just pick a game and go.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="#" data-action="random">Play a random game</a>
+          <a class="btn btn-ghost btn-lg" href="category.html">Browse all games</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="pill-row" id="pillRow" aria-label="Categories">
+        <span class="skeleton pill" style="display:inline-flex; width:120px">&nbsp;</span>
+        <span class="skeleton pill" style="display:inline-flex; width:110px">&nbsp;</span>
+        <span class="skeleton pill" style="display:inline-flex; width:130px">&nbsp;</span>
+        <span class="skeleton pill" style="display:inline-flex; width:100px">&nbsp;</span>
+      </div>
+    </div>
+
+    <section class="glow-section" id="new">
+      <div class="container">
+        <div class="sec-head">
+          <div>
+            <h2 class="display-lg">New games</h2>
+            <p class="sub" id="newSub">Fresh from the editors</p>
+          </div>
+          <a class="inline-link" href="category.html">See all games →</a>
+        </div>
+        <div class="game-grid" id="newGrid"></div>
+      </div>
+    </section>
+
+    <section class="band glow-section glow-orange">
+      <div class="container">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></svg>
+            </div>
+            <h3>No downloads, ever</h3>
+            <p>Every game loads straight in your browser — desktop, laptop, Chromebook, tablet, or phone. Tap play and you're in.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.9-7.4"/><path d="M21 3v6h-6"/></svg>
+            </div>
+            <h3>Fresh every day</h3>
+            <p>Our editors add the newest and best free games daily — from bubble puzzlers to battle royales, there's always something new.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            </div>
+            <h3>Zero interruptions</h3>
+            <p>No waiting in lobbies, no software to install, no paywalls. Enjoy the experience — play our games on any device.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band glow-section glow-blue stat-band">
+      <div class="container">
+        <h2 class="display-xl">5,000+ free games.<br>Zero downloads.</h2>
+        <p class="subtitle" style="color: var(--mute); margin-top: var(--space-md);">
+          Classic favourites, daily puzzles, and brand-new hits — from Bubble Spinner
+          and Mahjongg to Fruit Merge and Little Big Snake.
+        </p>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-num" id="statGames">5,000+</div>
+            <div class="stat-label">Free games</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">19</div>
+            <div class="stat-label">Categories</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Playable on browser</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glow-section glow-green" id="trending">
+      <div class="container">
+        <div class="sec-head">
+          <div>
+            <h2 class="display-lg">Good picks</h2>
+            <p class="sub">A little something for every mood</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="reRoll">Shuffle →</button>
+        </div>
+        <div class="game-grid" id="trendGrid"></div>
+      </div>
+    </section>
+
+    <div class="container divider" aria-hidden="true"></div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="nav-logo" href="index.html">
+            <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+            Bored<span style="color: var(--mute)">PuP</span>
+          </a>
+          <p>Welcome to BoredPuP, home of thousands of free online video games
+          that can be played on nearly every phone, tablet, and PC — with no
+          software downloads necessary.</p>
+        </div>
+        <div>
+          <h4>Play</h4>
+          <a href="category.html">All games</a>
+          <a href="index.html#new">New games</a>
+          <a href="index.html#trending">Good picks</a>
+          <a href="#" data-action="random">Random game</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <div id="footerCats"></div>
+        </div>
+        <div>
+          <h4>About</h4>
+          <a href="https://www.gamemonetize.com/" rel="noopener" target="_blank">GameMonetize</a>
+          <a href="search.html">Search</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 BoredPuP — free online games for the bored.</span>
+        <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/home.js"></script>
+</body>
+</html>

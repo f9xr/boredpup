@@ -1,0 +1,13 @@
+{
+  "name": "boredpup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BoredPuP — free online games portal powered by the GameMonetize feed.",
+  "scripts": {
+    "build:feed": "node scripts/build-feed.mjs",
+    "serve": "node scripts/serve.mjs . 8080"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
