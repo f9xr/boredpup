@@ -2,9 +2,12 @@
   "name": "boredpup",
   "version": "1.0.0",
   "private": true,
-  "description": "BoredPuP - free online games portal powered by the GameMonetize feed.",
+  "description": "BoredPuP - free online games portal powered by GameMonetize, GameDistribution, and yupi.io.",
   "scripts": {
     "build:feed": "node scripts/build-feed.mjs",
+    "build:yupi": "node scripts/build-yupi.mjs",
+    "build:gd": "node scripts/build-gd.mjs",
+    "build:all": "node scripts/build-yupi.mjs && node scripts/build-gd.mjs && node scripts/build-feed.mjs",
     "serve": "node scripts/serve.mjs . 8080"
   },
   "engines": {

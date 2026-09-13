@@ -1,3 +1,9 @@
 #GameMonetize.com
 google.com, pub-5519830896693885, DIRECT, f08c47fec0942fa0
 google.com, pub-4764333688337558, DIRECT, f08c47fec0942fa0
+
+# WGPlayground ADX
+google.com, pub-9427048641572074, RESELLER, f08c47fec0942fa0
+google.com, pub-7248593568933467, RESELLER, f08c47fec0942fa0
+google.com, pub-4529402052683454, RESELLER, f08c47fec0942fa0
+wgplayer.com, WGP5265933821, DIRECT

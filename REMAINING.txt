@@ -1,0 +1,62 @@
+BoredPuP - Remaining tasks
+==========================
+Updated: 2026-09-13 (this session's work is NOT yet committed)
+
+DONE (do not redo)
+------------------
+- Walkthrough overlay bug fix (verified, no overlap)
+- Catalog slimming (5-element rows + detail shards, ~880 KB / ~2.8 MB)
+- Full SEO pass (canonical, og/twitter, JSON-LD WebSite + VideoGame, robots meta)
+- PWA shell (manifest, service worker, 192/512/maskable/apple icons)
+- Info pages (pages/about, contact, parents, terms, privacy)
+- Favorites / Recently played (my-games.html) + game page shortcuts (R/F)
+- Home "Continue playing" section
+- Em/en dash removal across site copy
+- All SVGs converted to Lucide icons
+- Featured-on marquee moved to sit just above the footer divider
+- Contact email changed to tontufytservices@gmail.com (contact/terms/privacy/parents)
+- tools.html renamed to developers.html (redirect stub, all links, sitemap, feed script)
+- Category cards overhauled: icon + accent-color cards on Home (Browse by category),
+  pill icons on category/search pages
+- Pagination added to category.html and search.html (windowed pager, ?page=N, URL sync,
+  scroll anchoring, view-transition flushes)
+- Multi-provider support: scripts/build-yupi.mjs (yupi.io sitemaps), scripts/build-gd.mjs
+  (GameDistribution wizard RSS). Both write data/*-cache.json; build-feed.mjs merges
+  any cache into catalog + shards + sitemap. safeEmbedUrl allows GameMonetize,
+  yupi.io/embed/, and html5.gamedistribution.com only. Walkthrough/hint are provider-aware.
+- Game walkthrough widget height increased to 640px (game.html + developers.html)
+- Footer reveal effect (fixed footer uncovered on scroll, desktop <=> 1080px, CSS-only)
+- CSS View Transitions API (cross-document fade + same-document grid flushes)
+- 404 page rebuilt: full nav, search, 10 random games, footer, noindex
+- SW cache version bumped to v2 (boredpup-static-v2 / boredpup-runtime-v2)
+- PWA install prompt: beforeinstallprompt/appinstalled => floating Install button
+- Shared og:image generated: assets/og-image.png (1200x630), referenced by all pages
+- GitHub Actions workflow .github/workflows/refresh-feed.yml: nightly npm run build:all,
+  commits data changes with [skip ci]
+- README.md updated (pages table, data pipeline, providers, workflows)
+
+REMAINING (external / explicit)
+-------------------------------
+1. Live verification after GitHub Pages deploy:
+   - Confirm service worker registers and PWA installs on the real domain
+   - Confirm marquee badge images (shipthing.com, 1000tools.best, smolsaas.com,
+     smolhunt.com) actually load and animate
+   - Check canonical URLs resolve to the final domain (set BOREDPUP_BASE_URL +
+     CNAME if a custom domain is used)
+2. Search engines:
+   - Submit sitemap.xml to Google Search Console and Bing Webmaster Tools
+   - Verify noindex on /search.html and /my-games.html once live
+3. Remaining SEO audit items (post-deploy):
+   - Contrast/accessibility AA pass (low priority)
+   - Re-check internal link crawl on the live site
+4. Monetization (when ready):
+   - Add ad placements / analytics to game pages
+   - Wire contact mailboxes to real inboxes
+5. flows.mjs:
+   - There is no flows.mjs / flow-test file anywhere in the repo. The old notes
+     were: "my-games clear" expectation should be null; check assets over HTTP
+     (not navigation); make the script exit cleanly. Decide whether to create it
+     or drop the item.
+
+Note: this session's changes are NOT yet committed/pushed. Review `git status`,
+`git diff` and commit when ready.

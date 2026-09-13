@@ -3,22 +3,146 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Not found - BoredPuP</title>
+  <title>Not Found - BoredPuP</title>
+  <meta name="description" content="Oops - that game got lost. Play one of these instead.">
+  <meta name="robots" content="noindex,follow">
+  <link rel="canonical" href=".">
+  <meta property="og:site_name" content="BoredPuP">
+  <meta property="og:title" content="Not Found - BoredPuP">
+  <meta property="og:description" content="That game got lost. Try one of these instead.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" id="ogUrl" content=".">
+  <meta property="og:image" content="./assets/og-image.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#000000">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body style="display:grid; place-items:center; min-height:100vh; padding: var(--space-xxl);">
-  <div style="text-align:center; max-width: 560px;">
-    <div class="display-xxl" style="margin-bottom: var(--space-xl);">404</div>
-    <h1 class="subtitle" style="margin-bottom: var(--space-lg);">That game ran into some walls.</h1>
-    <p class="mute" style="margin-bottom: var(--space-xxl);">The page you're looking for doesn't exist. Go back for another one of the thousands of free games.</p>
-    <div style="display:flex; gap: var(--space-md); justify-content:center; flex-wrap:wrap;">
-      <a class="btn btn-primary" href="index.html">Back to home</a>
-      <a class="btn btn-ghost" href="category.html">Browse all games</a>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" aria-label="BoredPuP home">
+        <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+        Bored<span style="color: var(--mute)">PuP</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="category.html">All games</a>
+        <a href="#" data-action="random">Surprise me</a>
+      </nav>
+      <div class="nav-search">
+        <form class="search" action="search.html" method="get" role="search">
+          <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+        </form>
+        <a class="btn btn-primary" href="#" data-action="random">Play now</a>
+      </div>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+        <svg class="lucide lucide-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
     </div>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Home</a>
+    <a href="category.html">All games</a>
+    <a href="#" data-action="random">Surprise me</a>
+    <a href="search.html">Search</a>
   </div>
+
+  <main class="glow-section glow-red">
+    <div class="container" style="padding-top: var(--space-section); padding-bottom: var(--space-xxxl); max-width: 760px;">
+      <div style="text-align: center;">
+        <div class="display-xxl" style="margin-bottom: var(--space-lg); opacity: 0.7;">404</div>
+        <h1 class="display-lg" style="margin-bottom: var(--space-md);">Game not found</h1>
+        <p class="subtitle mute" style="margin-bottom: var(--space-xxl);">
+          The page you're looking for doesn't exist. Try searching or pick from these instead:
+        </p>
+        <form class="search" action="search.html" method="get" role="search" style="display: flex; gap: var(--space-sm); max-width: 480px; margin: 0 auto;">
+          <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" name="q" placeholder="Search for a game…" aria-label="Search games" style="flex:1;">
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+      </div>
+
+      <div id="suggested" style="margin-top: var(--space-xxxl);">
+        <h2 class="heading-md" style="margin-bottom: var(--space-xl); text-align:center; color: var(--charcoal);">Or try a random game</h2>
+        <div class="game-grid" id="suggestedGrid"></div>
+      </div>
+
+      <div style="text-align: center; margin-top: var(--space-xxxl); display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+        <a class="btn btn-primary btn-lg" href="category.html">Browse all games</a>
+        <a class="btn btn-ghost btn-lg" href="#" data-action="random">Play a random game</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="nav-logo" href="index.html">
+            <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
+            Bored<span style="color: var(--mute)">PuP</span>
+          </a>
+          <p>Welcome to BoredPuP, home of thousands of free online video games
+          that can be played on nearly every phone, tablet, and PC - with no
+          software downloads necessary.</p>
+        </div>
+        <div>
+          <h4>Play</h4>
+          <a href="category.html">All games</a>
+          <a href="index.html#new">New games</a>
+          <a href="index.html#trending">Good picks</a>
+          <a href="#" data-action="random">Random game</a>
+          <a href="my-games.html">Favorites</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <div id="footerCats"></div>
+        </div>
+        <div>
+          <h4>About</h4>
+          <a href="pages/about.html">About us</a>
+          <a href="pages/contact.html">Contact</a>
+          <a href="developers.html">Developer tools</a>
+          <a href="pages/parents.html">For parents</a>
+          <a href="pages/terms.html">Terms</a>
+          <a href="pages/privacy.html">Privacy</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 BoredPuP - free online games for the bored.</span>
+        <span>Made by <a href="https://f9xr.github.io/" target="_blank" rel="noopener">F9XR Team</a></span>
+        <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initNav, initFooter, renderGameGrid, renderSkeleton, sample, setCanonical } from "./js/app.js";
+    import { getAllGames } from "./js/data.js";
+
+    initNav();
+    setCanonical();
+
+    try {
+      const grid = document.getElementById("suggestedGrid");
+      renderSkeleton(grid, 10);
+      const games = await getAllGames();
+      renderGameGrid(grid, sample(games, 10));
+    } catch {
+      const grid = document.getElementById("suggestedGrid");
+      if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><div class="big">Games unavailable</div><p>Please refresh to try again.</p></div>`;
+    }
+
+    initFooter();
+  </script>
 </body>
 </html>

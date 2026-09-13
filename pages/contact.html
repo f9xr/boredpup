@@ -11,7 +11,7 @@
   <meta property="og:description" content="Report a broken game or send feedback to BoredPuP.">
   <meta property="og:type" content="website">
   <meta property="og:url" id="ogUrl" content=".">
-  <meta property="og:image" content="../assets/icon-512.png">
+  <meta property="og:image" content="../assets/og-image.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Contact - BoredPuP">
   <meta name="theme-color" content="#000000">
@@ -85,7 +85,7 @@
           <textarea id="contactMessage" rows="6" placeholder="Tell us what's happening - e.g. which game,…"></textarea>
           <button class="btn btn-primary" id="sendBtn" style="margin-top: var(--space-lg);">Compose email</button>
           <p class="subtitle mute" style="margin-top: var(--space-md);">
-            This opens your email app addressed to hello@boredpup.com with the details filled in. No form data is stored.
+            This opens your email app addressed to tontufytservices@gmail.com with the details filled in. No form data is stored.
           </p>
         </div>
       </div>
@@ -93,7 +93,7 @@
       <div style="margin-top: var(--space-xxl);" class="contact-col prose">
         <div class="contact-row">
           <span class="row-label">General</span>
-          <span class="row-value"><a href="mailto:hello@boredpup.com">hello@boredpup.com</a></span>
+          <span class="row-value"><a href="mailto:tontufytservices@gmail.com">tontufytservices@gmail.com</a></span>
         </div>
         <div class="contact-row">
           <span class="row-label">Copyright / DMCA</span>
@@ -135,7 +135,7 @@
           <h4>About</h4>
           <a href="../pages/about.html">About us</a>
           <a href="../pages/contact.html">Contact</a>
-          <a href="../tools.html">Tools</a>
+          <a href="../developers.html">Developer tools</a>
           <a href="../pages/parents.html">For parents</a>
           <a href="../pages/terms.html">Terms</a>
           <a href="../pages/privacy.html">Privacy</a>
@@ -143,6 +143,7 @@
       </div>
       <div class="footer-bottom">
         <span>© 2026 BoredPuP - free online games for the bored.</span>
+        <span>Made by <a href="https://f9xr.github.io/" target="_blank" rel="noopener">F9XR Team</a></span>
         <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
       </div>
     </div>
@@ -162,7 +163,7 @@
       };
       const subject = `[BoredPuP] ${topics[typeSelect.value] || "Contact"}`;
       const body = msg.value.trim() ? msg.value.trim() : "(no message)";
-      window.location.href = `mailto:hello@boredpup.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = `mailto:tontufytservices@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   </script>
 </body>

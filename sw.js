@@ -1,8 +1,8 @@
 /* BoredPuP service worker - offline shell + runtime caching.
    Scope: the directory containing this file (repo root). */
 
-const CACHE = "boredpup-static-v1";
-const RUNTIME = "boredpup-runtime-v1";
+const CACHE = "boredpup-static-v2";
+const RUNTIME = "boredpup-runtime-v2";
 const PRECACHE = [
   "./",
   "./index.html",

@@ -12,12 +12,39 @@ function safeEmbedUrl(url) {
   try {
     const u = new URL(url);
     if (u.protocol !== "https:") return null;
-    if (!/^(html5\.)?gamemonetize\.(co|com)$/i.test(u.hostname)) return null;
+    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
     return u.href;
   } catch {
     return null;
   }
 }
+
+function isAllowedProvider(hostname, pathname) {
+  const host = String(hostname).toLowerCase();
+  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
+  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
+  if (host === "html5.gamedistribution.com") return true;
+  return false;
+}
+
+function providerOf(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
+    if (host === "yupi.io") return "yupi";
+    if (host === "html5.gamedistribution.com") return "gamedistribution";
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+const PROVIDER_LABELS = {
+  gamemonetize: "GameMonetize",
+  yupi: "yupi.io",
+  gamedistribution: "GameDistribution",
+};
 
 function buildIframe(slot, url, w, h) {
   const iframe = document.createElement("iframe");
@@ -130,7 +157,7 @@ function injectWalkthrough(title) {
   window.VIDEO_OPTIONS = {
     gameid: gameId,
     width: "100%",
-    height: "480px",
+    height: "640px",
     color: "#3b9eff",
     getAds: "true",
   };
@@ -218,6 +245,7 @@ async function render() {
   const details = await getDetails(id);
   currentDetails = details;
   const url = details ? safeEmbedUrl(details.url) : null;
+  const provider = url ? providerOf(url) : null;
   const w = details ? details.width : 800;
   const h = details ? details.height : 600;
   if (!url) {
@@ -255,7 +283,7 @@ async function render() {
   buildIframe(iframeSlot, url, w, h);
 
   const hint = document.querySelector(".play-hint");
-  hint.textContent = `Playing ${title} · ${w}×${h} · loaded from GameMonetize`;
+  hint.textContent = `Playing ${title} · ${w}×${h} · loaded from ${PROVIDER_LABELS[provider] || "GameMonetize"}`;
 
   const instrEl = document.getElementById("instructions");
   const aboutEl = document.getElementById("description");
@@ -282,7 +310,11 @@ async function render() {
     description: details ? details.description : "",
   });
 
-  injectWalkthrough(title);
+  if (provider === "gamemonetize") {
+    injectWalkthrough(title);
+  } else {
+    showWalkthroughMessage(title);
+  }
   renderRelated();
   void titleEl;
 }

@@ -7,11 +7,31 @@ function safeEmbedUrl(url) {
   try {
     const u = new URL(url);
     if (u.protocol !== "https:") return null;
-    if (!/^(html5\.)?gamemonetize\.(co|com)$/i.test(u.hostname)) return null;
+    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
     return u.href;
   } catch {
     return null;
   }
+}
+
+function isAllowedProvider(hostname, pathname) {
+  const host = String(hostname).toLowerCase();
+  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
+  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
+  if (host === "html5.gamedistribution.com") return true;
+  return false;
+}
+
+function providerOf(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
+    if (host === "yupi.io") return "yupi";
+    if (host === "html5.gamedistribution.com") return "gamedistribution";
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 function bindTabs() {
@@ -64,6 +84,7 @@ async function showGameTools(g) {
   const h = details ? details.height : 600;
   const embedUrl = url || "https://html5.gamemonetize.co/";
   const playHref = `game.html?id=${encodeURIComponent(id)}&t=${encodeURIComponent(title)}`;
+  const provider = url ? providerOf(url) : null;
 
   document.getElementById("toolTitle").textContent = title;
   const playLink = document.getElementById("toolPlayLink");
@@ -73,7 +94,10 @@ async function showGameTools(g) {
   const embed = `<iframe src="${embedUrl}" width="100%" height="100%" style="aspect-ratio: ${w} / ${h}; border: 0;" allow="autoplay; fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" title="${title.replace(/"/g, "&quot;")}"></iframe>`;
   document.getElementById("toolEmbed").textContent = embed;
 
-  const walk = `<iframe src="https://gamemonetize.video/?gameid=${encodeURIComponent(id)}&color=%233b9eff" width="100%" height="480" style="border: 0;" allowfullscreen title="Walkthrough for ${title.replace(/"/g, "&quot;")}"></iframe>`;
+  const walk =
+    provider === "gamemonetize"
+      ? `<iframe src="https://gamemonetize.video/?gameid=${encodeURIComponent(id)}&color=%233b9eff" width="100%" height="640" style="border: 0;" allowfullscreen title="Walkthrough for ${title.replace(/"/g, "&quot;")}"></iframe>`
+      : "No walkthrough embed available for " + ({ yupi: "yupi.io", gamedistribution: "GameDistribution" }[provider] || "this provider") + " games - play it here: " + new URL(playHref, window.location.href).href;
   document.getElementById("toolWalk").textContent = walk;
 
   const share = new URL(playHref, window.location.href).href;

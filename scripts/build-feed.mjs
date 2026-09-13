@@ -1,4 +1,4 @@
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -103,6 +103,56 @@ async function main() {
     ];
   }
 
+  // Merge secondary providers (data/*-cache.json), if present.
+  const secondary = new Map();
+  let cacheFiles = [];
+  try {
+    cacheFiles = (await readdir(dataDir))
+      .filter((f) => /-cache\.json$/.test(f))
+      .sort();
+  } catch {
+    /* no data dir yet */
+  }
+  for (const file of cacheFiles) {
+    try {
+      const merge = JSON.parse(await readFile(join(dataDir, file), "utf8"));
+      if (merge && Array.isArray(merge.rows)) {
+        let merged = 0;
+        for (const row of merge.rows) {
+          const sid = Array.isArray(row) ? String(row[0]) : "";
+          if (!sid || seen.has(sid)) continue;
+          seen.add(sid);
+          const [, title, category, tags, thumb] = row;
+          counts.set(category, (counts.get(category) || 0) + 1);
+          catalog.push([
+            sid,
+            decodeEntities(title) || "Untitled Game",
+            category,
+            Array.isArray(tags)
+              ? tags.map((t) => decodeEntities(String(t))).filter(Boolean)
+              : [],
+            String(thumb ?? "").trim(),
+          ]);
+          const d = merge.details && merge.details[sid];
+          if (Array.isArray(d)) {
+            const shard = hashString(sid) % DETAIL_SHARDS;
+            (shards[shard] ??= {})[sid] = [
+              decodeEntities(d[0]) || "",
+              d[1] ? decodeEntities(d[1]) : "",
+              String(d[2] ?? "").trim(),
+              toInt(d[3]),
+              toInt(d[4]),
+            ];
+          }
+          merged++;
+        }
+        secondary.set(file, merged);
+      }
+    } catch {
+      /* unreadable cache - skip */
+    }
+  }
+
   const categories = [...counts.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
@@ -133,7 +183,7 @@ async function main() {
   console.log(`catalog.json:      ${formatBytes(catSize)}`);
   console.log(`meta.json:         ${formatBytes(metaSize)}`);
   console.log(`details (${Object.keys(shards).length} shards): total ${formatBytes(detailTotal)}, max ${formatBytes(detailMax)}`);
-  console.log(`categories: ${categories.length}, games: ${catalog.length}, skipped: ${skipped}`);
+  console.log(`categories: ${categories.length}, games: ${catalog.length}, skipped: ${skipped}, secondary: ${cacheFiles.length ? [...secondary].map(([f, n]) => `${f}=${n}`).join(", ") : "none"}`);
   console.log("sitemap.xml written");
   console.log("Done ✓");
 }
@@ -144,7 +194,7 @@ async function writeSitemap(catalog, categories) {
     "",
     "/category.html",
     "/search.html",
-    "/tools.html",
+    "/developers.html",
     "/my-games.html",
     "/pages/about.html",
     "/pages/contact.html",

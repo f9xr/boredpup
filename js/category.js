@@ -2,14 +2,16 @@ import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleto
 import { getAllGames, getCategories } from "./data.js";
 
 const PAGE_SIZE = 24;
+const PAGE_WINDOW = 2;
 
 const params = new URLSearchParams(window.location.search);
 const category = params.get("c") || null;
 
 let allLoaded = [];
 let filtered = [];
-let shown = 0;
-let sortBy = "newest";
+let sortBy = params.get("sort") || "newest";
+let page = Math.max(1, parseInt(params.get("page") || "1", 10) || 1);
+let totalPages = 1;
 
 function applySort(list) {
   const arr = [...list];
@@ -18,29 +20,79 @@ function applySort(list) {
   return arr;
 }
 
-function refreshGrid({ reset = false } = {}) {
+function updateUrl() {
+  const p = new URLSearchParams();
+  if (category) p.set("c", category);
+  if (sortBy !== "newest") p.set("sort", sortBy);
+  if (page > 1) p.set("page", String(page));
+  const path = window.location.pathname.includes(".html")
+    ? window.location.pathname.split("/").pop()
+    : "category.html";
+  const qs = p.toString();
+  history.replaceState(null, "", `${path}${qs ? `?${qs}` : ""}`);
+}
+
+function pageUrl(target) {
+  const p = new URLSearchParams();
+  if (category) p.set("c", category);
+  if (sortBy !== "newest") p.set("sort", sortBy);
+  if (target > 1) p.set("page", String(target));
+  const qs = p.toString();
+  return `${qs ? `?${qs}` : ""}`;
+}
+
+function renderPager() {
+  const host = document.getElementById("pager");
+  if (!host) return;
+  if (totalPages <= 1) {
+    host.innerHTML = "";
+    return;
+  }
+
+  const pages = [];
+  const clamp = (n) => Math.min(totalPages, Math.max(1, n));
+  for (let i = clamp(page - PAGE_WINDOW); i <= clamp(page + PAGE_WINDOW); i++) pages.push(i);
+  if (pages[0] > 1) {
+    pages.unshift(1);
+    if (pages[0 + 1] > 2) pages.splice(1, 0, "…");
+  }
+  if (pages[pages.length - 1] < totalPages) {
+    if (pages[pages.length - 1] < totalPages - 1) pages.push("…");
+    pages.push(totalPages);
+  }
+
+  const item = (p, label = String(p), extra = "", disabled = false) => {
+    if (disabled) return `<span class="page-btn page-btn-nav disabled" aria-disabled="true">${label}</span>`;
+    if (p === "...") return `<span class="page-gap" aria-hidden="true">${p}</span>`;
+    const active = p === page ? " active" : "";
+    return `<a class="page-btn${active}${extra}" href="${pageUrl(p)}" data-page="${p}"${active ? ' aria-current="page"' : ""}>${label}</a>`;
+  };
+
+  const prev = page > 1 ? `<a class="page-btn page-btn-nav" href="${pageUrl(page - 1)}" data-page="${page - 1}" rel="prev" aria-label="Previous page">← Prev</a>` : item(-1, "← Prev", " page-btn-nav", true);
+  const next = page < totalPages ? `<a class="page-btn page-btn-nav" href="${pageUrl(page + 1)}" data-page="${page + 1}" rel="next" aria-label="Next page">Next →</a>` : item(-1, "Next →", " page-btn-nav", true);
+
+  host.innerHTML =
+    `<span class="page-summary">Page ${page} of ${totalPages}</span>` + prev + pages.map((p) => item(p)).join("") + next;
+}
+
+function refreshGrid() {
   const grid = document.getElementById("grid");
-  if (reset) {
-    shown = 0;
-    grid.innerHTML = "";
-  }
-  const slice = applySort(filtered).slice(shown, shown + PAGE_SIZE);
-  renderGameGrid(grid, slice);
-  shown += slice.length;
+  const sorted = applySort(filtered);
+  totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  page = Math.min(page, totalPages);
 
-  const moreBtn = document.getElementById("loadMore");
-  moreBtn.style.display = shown < filtered.length ? "inline-flex" : "none";
-  const remaining = filtered.length - shown;
-  moreBtn.textContent = remaining > 0 ? `Load more (${remaining} left)` : "Load more games";
+  const slice = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (!shown) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="big">Nothing here yet</div>
-        <p>No games match this category. Try another one above.</p>
-      </div>`;
-    moreBtn.style.display = "none";
+  const flush = () => renderGameGrid(grid, slice);
+  if (document.startViewTransition) {
+    try { document.startViewTransition(() => { flush(); updateUrl(); }); }
+    catch { flush(); updateUrl(); }
+  } else {
+    flush();
+    updateUrl();
   }
+
+  renderPager();
 }
 
 function render() {
@@ -68,7 +120,23 @@ function render() {
   }
 
   countEl.textContent = `${filtered.length.toLocaleString()} ${filtered.length === 1 ? "game" : "games"} free to play`;
-  refreshGrid({ reset: true });
+  refreshGrid();
+}
+
+function bindPager() {
+  const pager = document.getElementById("pager");
+  if (!pager) return;
+  pager.addEventListener("click", (e) => {
+    const link = e.target.closest("a[data-page]");
+    if (!link) return;
+    e.preventDefault();
+    const target = parseInt(link.dataset.page, 10);
+    if (!target || target < 1 || target > totalPages || target === page) return;
+    page = target;
+    const list = document.getElementById("listHead");
+    if (list) list.scrollIntoView({ behavior: "smooth", block: "start" });
+    refreshGrid();
+  });
 }
 
 async function init() {
@@ -92,21 +160,16 @@ async function init() {
   initFooter();
 
   const sortSelect = document.getElementById("sortSelect");
+  sortSelect.value = sortBy;
   sortSelect.addEventListener("change", () => {
     sortBy = sortSelect.value;
-    refreshGrid({ reset: true });
-    gridFade();
+    page = 1;
+    refreshGrid();
   });
 
-  document.getElementById("loadMore").addEventListener("click", () => refreshGrid());
+  bindPager();
 
   document.title = category ? `${category} Games - BoredPuP` : "All Games - BoredPuP";
-}
-
-function gridFade() {
-  const grid = document.getElementById("grid");
-  grid.style.opacity = "0.4";
-  setTimeout(() => (grid.style.opacity = "1"), 120);
 }
 
 init();
