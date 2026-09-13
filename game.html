@@ -3,14 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Loading game… — BoredPuP</title>
-  <meta name="description" content="Play free online games instantly on BoredPuP — no downloads, no sign-ups.">
-  <meta property="og:type" content="article">
+  <title>Loading game… - BoredPuP</title>
+  <meta name="description" content="Play free online games instantly on BoredPuP - no downloads, no sign-ups.">
+  <link rel="canonical" href=".">
+  <meta property="og:type" content="website">
   <meta property="og:site_name" content="BoredPuP">
-  <meta id="ogTitle" property="og:title" content="Play free online games — BoredPuP">
+  <meta id="ogTitle" property="og:title" content="Play free online games - BoredPuP">
   <meta id="ogDesc" property="og:description" content="Play instantly in your browser. No downloads.">
-  <meta id="ogImage" property="og:image" content="">
+  <meta id="ogUrl" property="og:url" content=".">
+  <meta id="ogImage" property="og:image" content="assets/icon-512.png">
+  <meta name="twitter:card" id="twCard" content="summary">
+  <meta id="twTitle" name="twitter:title" content="Play free online games - BoredPuP">
+  <meta id="twDesc" name="twitter:description" content="Play instantly in your browser. No downloads.">
+  <meta id="twImg" name="twitter:image" content="assets/icon-512.png">
+  <meta name="theme-color" content="#000000">
+  <meta name="robots" content="index,follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -31,13 +41,13 @@
       </nav>
       <div class="nav-search">
         <form class="search" action="search.html" method="get" role="search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
         </form>
         <a class="btn btn-primary" href="#" data-action="random">Play now</a>
       </div>
       <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        <svg class="lucide lucide-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       </button>
     </div>
   </header>
@@ -82,7 +92,7 @@
 
           <div class="info-card" id="howToCard" style="display:none;">
             <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <svg class="lucide lucide-music" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               How to play
             </h3>
             <p id="instructions"></p>
@@ -140,7 +150,7 @@
             Bored<span style="color: var(--mute)">PuP</span>
           </a>
           <p>Welcome to BoredPuP, home of thousands of free online video games
-          that can be played on nearly every phone, tablet, and PC — with no
+          that can be played on nearly every phone, tablet, and PC - with no
           software downloads necessary.</p>
         </div>
         <div>
@@ -149,6 +159,7 @@
           <a href="index.html#new">New games</a>
           <a href="index.html#trending">Good picks</a>
           <a href="#" data-action="random">Random game</a>
+          <a href="my-games.html">Favorites</a>
         </div>
         <div>
           <h4>Categories</h4>
@@ -156,12 +167,16 @@
         </div>
         <div>
           <h4>About</h4>
-          <a href="https://www.gamemonetize.com/" rel="noopener" target="_blank">GameMonetize</a>
-          <a href="search.html">Search</a>
+          <a href="pages/about.html">About us</a>
+          <a href="pages/contact.html">Contact</a>
+          <a href="tools.html">Tools</a>
+          <a href="pages/parents.html">For parents</a>
+          <a href="pages/terms.html">Terms</a>
+          <a href="pages/privacy.html">Privacy</a>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 BoredPuP — free online games for the bored.</span>
+        <span>© 2026 BoredPuP - free online games for the bored.</span>
         <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
       </div>
     </div>

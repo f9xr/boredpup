@@ -3,16 +3,51 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BoredPuP — Free Online Games, Play Instantly</title>
-  <meta name="description" content="BoredPuP is home to thousands of free online games. Play instantly in your browser on PC, tablet, and mobile — no downloads, no interruptions.">
-  <meta property="og:title" content="BoredPuP — Free Online Games">
+  <title>BoredPuP - Free Online Games, Play Instantly</title>
+  <meta name="description" content="BoredPuP is home to thousands of free online games. Play instantly in your browser on PC, tablet, and mobile - no downloads, no interruptions.">
+  <link rel="canonical" href=".">
+  <meta property="og:site_name" content="BoredPuP">
+  <meta property="og:title" content="BoredPuP - Free Online Games">
   <meta property="og:description" content="Thousands of free online games, playable instantly on any device.">
   <meta property="og:type" content="website">
+  <meta property="og:url" id="ogUrl" content=".">
+  <meta property="og:image" content="assets/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="BoredPuP - Free Online Games">
+  <meta name="twitter:description" content="Thousands of free online games, playable instantly on any device.">
+  <meta name="theme-color" content="#000000">
+  <meta name="robots" content="index,follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "BoredPuP",
+    "url": "https://boredpup.com/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://boredpup.com/search.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "BoredPuP",
+      "url": "https://boredpup.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://boredpup.com/assets/icon-512.png",
+        "width": 512,
+        "height": 512
+      }
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -29,13 +64,13 @@
       </nav>
       <div class="nav-search">
         <form class="search" action="search.html" method="get" role="search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+          <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
         </form>
         <a class="btn btn-primary" href="#" data-action="random">Play now</a>
       </div>
       <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        <svg class="lucide lucide-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       </button>
     </div>
   </header>
@@ -57,13 +92,64 @@
         </div>
         <h1 class="hero-title">Bored?<br>Play.</h1>
         <p class="hero-subtitle">
-          BoredPuP is home to thousands of free online games — playable on
+          BoredPuP is home to thousands of free online games - playable on
           nearly every phone, tablet, and PC. No downloads, no sign-ups, no
           interruptions. Just pick a game and go.
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="#" data-action="random">Play a random game</a>
           <a class="btn btn-ghost btn-lg" href="category.html">Browse all games</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-label="Featured on">
+      <div class="marquee-row left" aria-hidden="true">
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="Featured on ShipThing" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="Featured on 1000 Tools" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="Featured on Smol Saas" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="Featured on Smol Hunt" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+          </div>
+          <div class="marquee-group">
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+          </div>
+        </div>
+      </div>
+      <div class="marquee-row right" aria-hidden="true">
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+          </div>
+          <div class="marquee-group">
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolhunt.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolhunt.com/smolhunt/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://smolsaas.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://smolsaas.com/smolsaas/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://1000tools.best/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://1000tools.best/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+            <a href="https://shipthing.com/projects/boredpup?utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://shipthing.com/shipthing/images/badges/featured-on-dark.svg" alt="" width="260" height="44" loading="lazy"></a>
+          </div>
         </div>
       </div>
     </section>
@@ -95,24 +181,24 @@
         <div class="feature-grid">
           <div class="feature-card">
             <div class="feature-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></svg>
+              <svg class="lucide lucide-gamepad-2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
             </div>
             <h3>No downloads, ever</h3>
-            <p>Every game loads straight in your browser — desktop, laptop, Chromebook, tablet, or phone. Tap play and you're in.</p>
+            <p>Every game loads straight in your browser - desktop, laptop, Chromebook, tablet, or phone. Tap play and you're in.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.9-7.4"/><path d="M21 3v6h-6"/></svg>
+              <svg class="lucide lucide-refresh-cw" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
             </div>
             <h3>Fresh every day</h3>
-            <p>Our editors add the newest and best free games daily — from bubble puzzlers to battle royales, there's always something new.</p>
+            <p>Our editors add the newest and best free games daily - from bubble puzzlers to battle royales, there's always something new.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+              <svg class="lucide lucide-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             </div>
             <h3>Zero interruptions</h3>
-            <p>No waiting in lobbies, no software to install, no paywalls. Enjoy the experience — play our games on any device.</p>
+            <p>No waiting in lobbies, no software to install, no paywalls. Enjoy the experience - play our games on any device.</p>
           </div>
         </div>
       </div>
@@ -122,7 +208,7 @@
       <div class="container">
         <h2 class="display-xl">5,000+ free games.<br>Zero downloads.</h2>
         <p class="subtitle" style="color: var(--mute); margin-top: var(--space-md);">
-          Classic favourites, daily puzzles, and brand-new hits — from Bubble Spinner
+          Classic favourites, daily puzzles, and brand-new hits - from Bubble Spinner
           and Mahjongg to Fruit Merge and Little Big Snake.
         </p>
         <div class="stat-row">
@@ -155,6 +241,19 @@
       </div>
     </section>
 
+    <section class="glow-section glow-orange" id="recent">
+      <div class="container">
+        <div class="sec-head">
+          <div>
+            <h2 class="display-lg">Continue playing</h2>
+            <p class="sub">Pick up where you left off</p>
+          </div>
+          <a class="inline-link" href="my-games.html">See my games →</a>
+        </div>
+        <div class="game-grid" id="recentGrid"></div>
+      </div>
+    </section>
+
     <div class="container divider" aria-hidden="true"></div>
 
   </main>
@@ -168,7 +267,7 @@
             Bored<span style="color: var(--mute)">PuP</span>
           </a>
           <p>Welcome to BoredPuP, home of thousands of free online video games
-          that can be played on nearly every phone, tablet, and PC — with no
+          that can be played on nearly every phone, tablet, and PC - with no
           software downloads necessary.</p>
         </div>
         <div>
@@ -177,6 +276,7 @@
           <a href="index.html#new">New games</a>
           <a href="index.html#trending">Good picks</a>
           <a href="#" data-action="random">Random game</a>
+          <a href="my-games.html">Favorites</a>
         </div>
         <div>
           <h4>Categories</h4>
@@ -184,12 +284,16 @@
         </div>
         <div>
           <h4>About</h4>
-          <a href="https://www.gamemonetize.com/" rel="noopener" target="_blank">GameMonetize</a>
-          <a href="search.html">Search</a>
+          <a href="pages/about.html">About us</a>
+          <a href="pages/contact.html">Contact</a>
+          <a href="tools.html">Tools</a>
+          <a href="pages/parents.html">For parents</a>
+          <a href="pages/terms.html">Terms</a>
+          <a href="pages/privacy.html">Privacy</a>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 BoredPuP — free online games for the bored.</span>
+        <span>© 2026 BoredPuP - free online games for the bored.</span>
         <span class="status"><span class="status-dot" aria-hidden="true"></span>Game catalog live</span>
       </div>
     </div>

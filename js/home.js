@@ -1,5 +1,5 @@
-import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleton, sample } from "./app.js";
-import { getAllGames, getCategories, randomGame } from "./data.js";
+import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleton, sample, setCanonical, initPwa } from "./app.js";
+import { getAllGames, getCategories, randomGame, getRecent } from "./data.js";
 
 const PAGE_SIZE = 15;
 let allGames = [];
@@ -36,8 +36,29 @@ function loadTrendGrid() {
   return picks;
 }
 
+function loadRecentGrid() {
+  const section = document.getElementById("recent");
+  const host = document.getElementById("recentGrid");
+  if (!section || !host) return;
+  const ids = getRecent();
+  if (!ids.length) {
+    section.style.display = "none";
+    return;
+  }
+  renderSkeleton(host, 8);
+  const byId = new Map(allGames.map((g) => [g[0], g]));
+  const items = ids.map((r) => byId.get(String(r.id))).filter(Boolean);
+  if (!items.length) {
+    section.style.display = "none";
+    return;
+  }
+  renderGameGrid(host, items.slice(0, 10));
+}
+
 async function init() {
   initNav();
+  setCanonical();
+  initPwa();
 
   try {
     const [games, cats] = await Promise.all([getAllGames(), getCategories()]);
@@ -49,6 +70,7 @@ async function init() {
     renderCategoryPills(document.getElementById("pillRow"), cats, null);
     loadNewGrid();
     initialGoodPicks = loadTrendGrid();
+    loadRecentGrid();
   } catch {
     renderGameGrid(document.getElementById("newGrid"), []);
   }

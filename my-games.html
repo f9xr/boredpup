@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>All Games - BoredPuP</title>
-  <meta name="description" content="Browse all free online games on BoredPuP - by category, sorted by newest. Play instantly, no downloads.">
+  <title>My Games - Favorites & Recently Played - BoredPuP</title>
+  <meta name="description" content="Your saved games and recently played on BoredPuP - stored privately in your browser.">
   <link rel="canonical" href=".">
   <meta property="og:site_name" content="BoredPuP">
-  <meta property="og:title" content="All Games - BoredPuP">
-  <meta property="og:description" content="Browse all free online games on BoredPuP - by category, sorted by newest.">
+  <meta property="og:title" content="My Games - BoredPuP">
+  <meta property="og:description" content="Your saved and recently played games, stored privately in your browser.">
   <meta property="og:type" content="website">
   <meta property="og:url" id="ogUrl" content=".">
   <meta property="og:image" content="assets/icon-512.png">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="All Games - BoredPuP">
+  <meta name="twitter:title" content="My Games - BoredPuP">
   <meta name="theme-color" content="#000000">
-  <meta name="robots" content="index,follow">
+  <meta name="robots" content="noindex,follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -57,44 +57,30 @@
     <a href="search.html">Search</a>
   </div>
 
-  <main>
-    <section class="glow-section glow-orange" id="top">
-      <div class="container">
-        <div style="padding-top: var(--space-xxxl); padding-bottom: var(--space-xxl);">
-          <nav class="crumbs" aria-label="Breadcrumb">
-            <a href="index.html">Home</a>
-            <span aria-hidden="true">/</span>
-            <span>Games</span>
-          </nav>
-          <h1 class="display-xl" id="pageTitle" style="margin-top: var(--space-xl);">All games</h1>
-          <p class="subtitle mute" id="pageCount" style="margin-top: var(--space-md);">Loading catalog…</p>
-        </div>
-
-        <div class="pill-row" id="pillRow" aria-label="Categories">
-          <span class="skeleton pill" style="display:inline-flex; width:120px">&nbsp;</span>
-          <span class="skeleton pill" style="display:inline-flex; width:110px">&nbsp;</span>
-        </div>
-
-        <div class="sec-head" style="margin-top: var(--space-xxl);">
-          <div>
-            <h2 class="display-lg" id="listTitle">Everything</h2>
-          </div>
-          <label class="search" style="display:inline-flex; align-items:center;">
-            <span class="sr-only">Sort games</span>
-            <select id="sortSelect" class="sort-select" aria-label="Sort games">
-              <option value="newest">Newest first</option>
-              <option value="az">Alphabetical A–Z</option>
-              <option value="za">Alphabetical Z–A</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="game-grid" id="grid"></div>
-        <div style="text-align:center; margin: var(--space-xxxl) 0 var(--space-section);">
-          <button class="btn btn-ghost btn-lg" id="loadMore">Load more games</button>
-        </div>
+  <main class="glow-section glow-green">
+    <div class="container">
+      <div class="page-top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span aria-hidden="true">/</span>
+          <span>My games</span>
+        </nav>
+        <h1 class="display-xl" style="margin-top: var(--space-xl);">My games</h1>
+        <p class="subtitle mute" style="margin-top: var(--space-md);">
+          Stored only on this device - never sent to our servers. Clear anytime below.
+        </p>
       </div>
-    </section>
+
+      <div class="my-tabs">
+        <button class="my-tab active" data-tab="recent" type="button">Recently played</button>
+        <button class="my-tab" data-tab="favs" type="button">Favorites <span id="favCount"></span></button>
+        <button class="btn btn-outline btn-sm" id="clearAll" type="button" style="margin-left: auto;">Clear history</button>
+      </div>
+
+      <div id="myGrid">
+        <div class="game-grid" id="recentGrid"></div>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">
@@ -138,6 +124,6 @@
     </div>
   </footer>
 
-  <script type="module" src="js/category.js"></script>
+  <script type="module" src="js/mygames.js"></script>
 </body>
 </html>

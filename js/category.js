@@ -1,4 +1,4 @@
-import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleton } from "./app.js";
+import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleton, setCanonical, initPwa } from "./app.js";
 import { getAllGames, getCategories } from "./data.js";
 
 const PAGE_SIZE = 24;
@@ -55,16 +55,16 @@ function render() {
     filtered = allLoaded.filter((g) => g[2] === category);
     title.textContent = `${category} games`;
     listTitle.textContent = category;
-    document.title = `${category} Games — BoredPuP`;
+    document.title = `${category} Games - BoredPuP`;
     document.querySelector('meta[name="description"]').setAttribute(
       "content",
-      `Play free ${category} games online instantly — no downloads. New ${category.toLowerCase()} games added daily at BoredPuP.`
+      `Play free ${category} games online instantly - no downloads. New ${category.toLowerCase()} games added daily at BoredPuP.`
     );
   } else {
     filtered = allLoaded;
     title.textContent = "All games";
     listTitle.textContent = "Everything";
-    document.title = "All Games — BoredPuP";
+    document.title = "All Games - BoredPuP";
   }
 
   countEl.textContent = `${filtered.length.toLocaleString()} ${filtered.length === 1 ? "game" : "games"} free to play`;
@@ -73,6 +73,8 @@ function render() {
 
 async function init() {
   initNav();
+  setCanonical();
+  initPwa();
 
   try {
     const [games, cats] = await Promise.all([getAllGames(), getCategories()]);
@@ -98,7 +100,7 @@ async function init() {
 
   document.getElementById("loadMore").addEventListener("click", () => refreshGrid());
 
-  document.title = category ? `${category} Games — BoredPuP` : "All Games — BoredPuP";
+  document.title = category ? `${category} Games - BoredPuP` : "All Games - BoredPuP";
 }
 
 function gridFade() {

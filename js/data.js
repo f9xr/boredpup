@@ -1,13 +1,20 @@
-/* BoredPuP — data layer.
+/* BoredPuP - data layer.
    Loads the slim GameMonetize catalog (data/catalog.json) and on-demand
    detail shards (data/details-<n>.json). Falls back to the live
-   GameMonetize feed whenever the snapshot is missing. */
+   GameMonetize feed whenever the snapshot is missing.
+
+   Catalog rows:  [id, title, category, tags, thumb]
+   Detail entry:  { description, instructions, url, width, height }  */
 
 export const FEED_URL =
   "https://rss.gamemonetize.com/rssfeed.php?format=json&category=All&type=html5&popularity=newest&company=All&amount=All";
 
 const DETAIL_SHARDS = 32;
-const LOCAL_KEY = "boredpup:catalog:v1";
+const LOCAL_KEY = "boredpup:catalog:v2";
+const RECENT_KEY = "boredpup:recent:v1";
+const FAVS_KEY = "boredpup:favs:v1";
+
+let liveFull = [];
 
 function hashString(str) {
   let h = 0;
@@ -24,8 +31,8 @@ function shardOf(id) {
 
 function decodeEntities(str) {
   return String(str ?? "")
-    .replace(/&amp;mdash;/gi, "—")
-    .replace(/&mdash;/gi, "—")
+    .replace(/&amp;mdash;/gi, "-")
+    .replace(/&mdash;/gi, "-")
     .replace(/&amp;ndash;/gi, "–")
     .replace(/&ndash;/gi, "–")
     .replace(/&amp;amp;/gi, "&")
@@ -59,16 +66,25 @@ function normalizeLiveGame(g) {
     decodeEntities(g.category) || "Arcade",
     (g.tags ? decodeEntities(g.tags).split(",").map((t) => t.trim()).filter(Boolean) : []),
     String(g.thumb ?? "").trim(),
-    parseInt(g.width, 10) || 800,
-    parseInt(g.height, 10) || 600,
-    String(g.url ?? "").trim(),
   ];
+}
+
+function normalizeLiveFull(g) {
+  return {
+    id: String(g.id ?? ""),
+    description: decodeEntities(g.description) || "",
+    instructions: g.instructions ? decodeEntities(g.instructions) : "",
+    url: String(g.url ?? "").trim(),
+    width: parseInt(g.width, 10) || 800,
+    height: parseInt(g.height, 10) || 600,
+  };
 }
 
 async function loadLiveSnapshot() {
   const games = await fetchJson(FEED_URL, { cache: "no-store" });
   if (!Array.isArray(games)) throw new Error("Unexpected live feed shape");
-  return games.map(normalizeLiveGame).filter((g) => g[0]);
+  liveFull = games.map(normalizeLiveFull);
+  return games.filter((g) => String(g.id ?? "")).map(normalizeLiveGame);
 }
 
 export async function getCatalog() {
@@ -153,12 +169,28 @@ export async function getDetails(id) {
   try {
     const shard = await fetchJson(`data/details-${shardOf(id)}.json`);
     const entry = shard[id];
-    const out = entry ? { description: entry[0], instructions: entry[1] } : null;
-    detailsCache[id] = out;
-    return out;
+    if (entry) {
+      const out = {
+        description: entry[0],
+        instructions: entry[1],
+        url: entry[2],
+        width: entry[3],
+        height: entry[4],
+      };
+      detailsCache[id] = out;
+      return out;
+    }
   } catch {
-    return null;
+    /* shard missing, fall through */
   }
+
+  const live = liveFull.find((g) => g.id === id);
+  if (live) {
+    detailsCache[id] = live;
+    return live;
+  }
+  detailsCache[id] = null;
+  return null;
 }
 
 export async function randomGame(excludeId) {
@@ -184,4 +216,53 @@ export function searchGames(games, query) {
     const hay = (g[1] + " " + g[2] + " " + (g[3] || []).join(" ")).toLowerCase();
     return terms.every((t) => hay.includes(t));
   });
+}
+
+/* ---------- favorites / recently played (localStorage utilities) ---------- */
+
+export function getFavorites() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(FAVS_KEY) || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isFavorite(id) {
+  return getFavorites().includes(String(id));
+}
+
+export function toggleFavorite(id) {
+  id = String(id);
+  const favs = getFavorites();
+  const idx = favs.indexOf(id);
+  if (idx >= 0) favs.splice(idx, 1);
+  else favs.push(id);
+  try {
+    localStorage.setItem(FAVS_KEY, JSON.stringify(favs));
+  } catch {
+    /* ignore */
+  }
+  return idx < 0;
+}
+
+export function getRecent() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markRecent(id, title) {
+  id = String(id);
+  const recent = getRecent().filter((r) => r.id !== id);
+  recent.unshift({ id, title, at: Date.now() });
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, 12)));
+  } catch {
+    /* ignore */
+  }
 }

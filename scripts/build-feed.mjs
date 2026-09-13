@@ -14,10 +14,11 @@ const dataDir = join(root, "data");
 
 function decodeEntities(str) {
   return String(str ?? "")
-    .replace(/&amp;mdash;/gi, "—")
-    .replace(/&mdash;/gi, "—")
-    .replace(/&amp;ndash;/gi, "–")
-    .replace(/&ndash;/gi, "–")
+    .replace(/&amp;mdash;/gi, " - ")
+    .replace(/&mdash;/gi, " - ")
+    .replace(/&amp;ndash;/gi, " - ")
+    .replace(/&ndash;/gi, " - ")
+    .replace(/[\u2014\u2013]/g, " - ")
     .replace(/&amp;amp;/gi, "&")
     .replace(/&amp;quot;/gi, '"')
     .replace(/&amp;apos;/gi, "'")
@@ -90,15 +91,15 @@ async function main() {
       category,
       (g.tags ? decodeEntities(g.tags).split(",").map((t) => t.trim()).filter(Boolean) : []),
       String(g.thumb ?? "").trim(),
-      toInt(g.width),
-      toInt(g.height),
-      url,
     ]);
 
     const shard = hashString(id) % DETAIL_SHARDS;
     (shards[shard] ??= {})[id] = [
       decodeEntities(g.description) || "",
       g.instructions ? decodeEntities(g.instructions) : "",
+      url,
+      toInt(g.width),
+      toInt(g.height),
     ];
   }
 
@@ -143,6 +144,13 @@ async function writeSitemap(catalog, categories) {
     "",
     "/category.html",
     "/search.html",
+    "/tools.html",
+    "/my-games.html",
+    "/pages/about.html",
+    "/pages/contact.html",
+    "/pages/parents.html",
+    "/pages/privacy.html",
+    "/pages/terms.html",
   ];
   for (const c of categories) {
     urls.push(`/category.html?c=${encodeURIComponent(c.name)}`);

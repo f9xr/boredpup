@@ -1,5 +1,5 @@
-import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample } from "./app.js";
-import { getGame, getDetails, getAllGames } from "./data.js";
+import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa } from "./app.js";
+import { getGame, getDetails, getAllGames, markRecent } from "./data.js";
 
 const params = new URLSearchParams(window.location.search);
 const gameId = params.get("id");
@@ -37,13 +37,14 @@ function buildIframe(slot, url, w, h) {
   return iframe;
 }
 
+let currentGame = null;
+let currentDetails = null;
+
 function restartGame() {
-  if (!activeGameUrl.current) return;
-  buildIframe(iframeSlot, activeGameUrl.current, currentGame[5], currentGame[6]);
+  if (!activeGameUrl.current || !currentDetails) return;
+  buildIframe(iframeSlot, activeGameUrl.current, currentDetails.width, currentDetails.height);
   toast("Game restarted");
 }
-
-let currentGame = null;
 
 function toggleFullscreen() {
   const fsEl = document.fullscreenElement;
@@ -57,6 +58,49 @@ function toggleFullscreen() {
   } else {
     playerFrame.classList.add("fullscreen-mode");
   }
+}
+
+function bindShortcuts() {
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    const key = e.key.toLowerCase();
+    if (key === "r") restartGame();
+    else if (key === "f") toggleFullscreen();
+  });
+}
+
+function injectVideoJsonLd({ id, title, category, tags, thumb, url, description }) {
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    name: title,
+    description: description || `Play ${title} - a free ${category} game, online instantly on BoredPuP.`,
+    genre: category,
+    url: window.location.href,
+    image: thumb || undefined,
+    keywords: Array.isArray(tags) ? tags.slice(0, 10) : [],
+    applicationCategory: "Game",
+    inLanguage: "en",
+    browserRequirements: "Any modern browser with HTML5 support",
+    publisher: {
+      "@type": "Organization",
+      name: "BoredPuP",
+      url: new URL("index.html", window.location.href).href,
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+  };
+  if (url) ld.embedUrl = url;
+  const block = document.createElement("script");
+  block.type = "application/ld+json";
+  block.id = "gameLd";
+  block.textContent = JSON.stringify(ld);
+  document.head.appendChild(block);
 }
 
 async function shareLink() {
@@ -132,7 +176,7 @@ function showWalkthroughMessage(title) {
   if (!slot) return;
   slot.innerHTML = `
     <div class="walkthrough-empty">
-      No walkthrough yet for this game — but ${escapeHtml(title)} is ready to play above.
+      No walkthrough yet for this game - but ${escapeHtml(title)} is ready to play above.
       New walkthroughs are added by our editors daily.
     </div>`;
 }
@@ -170,21 +214,30 @@ async function render() {
   const category = game[2];
   const tags = Array.isArray(game[3]) ? game[3] : [];
   const thumb = game[4];
-  const w = game[5];
-  const h = game[6];
-  const rawUrl = game[7];
 
-  const url = safeEmbedUrl(rawUrl);
+  const details = await getDetails(id);
+  currentDetails = details;
+  const url = details ? safeEmbedUrl(details.url) : null;
+  const w = details ? details.width : 800;
+  const h = details ? details.height : 600;
   if (!url) {
     fail();
     return;
   }
 
-  document.querySelector('meta[name="description"]').setAttribute("content", `Play ${title} — a free ${category} game, online instantly on BoredPuP. No downloads, no sign-ups.`);
-  document.querySelector("#ogTitle").setAttribute("content", `${title} — Play free online`);
+  markRecent(id, title);
+
+  document.querySelector('meta[name="description"]').setAttribute("content", `Play ${title} - a free ${category} game, online instantly on BoredPuP. No downloads, no sign-ups.`);
+  document.querySelector("#ogTitle").setAttribute("content", `${title} - Play free online`);
   document.querySelector("#ogDesc").setAttribute("content", `Play ${title}, a free ${category} game, in your browser right now on BoredPuP.`);
-  if (thumb) document.querySelector("#ogImage").setAttribute("content", thumb);
-  document.title = `${title} — Play Free Online on BoredPuP`;
+  document.querySelector("#ogImage").setAttribute("content", thumb);
+  document.querySelector("#ogUrl").setAttribute("content", window.location.href);
+  if (document.querySelector("#twCard")) document.querySelector("#twCard").setAttribute("content", "summary_large_image");
+  if (document.querySelector("#twTitle")) document.querySelector("#twTitle").setAttribute("content", `${title} - Play free online`);
+  if (document.querySelector("#twDesc")) document.querySelector("#twDesc").setAttribute("content", `Play ${title}, a free ${category} game, right now on BoredPuP.`);
+  if (document.querySelector("#twImg")) document.querySelector("#twImg").setAttribute("content", thumb);
+  document.title = `${title} - Play Free Online on BoredPuP`;
+  setCanonical();
 
   crumbs.innerHTML = `
     <a href="index.html">Home</a>
@@ -193,7 +246,7 @@ async function render() {
     <span aria-hidden="true">/</span>
     <span>${escapeHtml(title)}</span>`;
 
-  document.getElementById("gameTitle").textContent = `${title} — free ${category} game`;
+  document.getElementById("gameTitle").textContent = `${title} - free ${category} game`;
   document.getElementById("tagRow").innerHTML = tags
     .slice(0, 8)
     .map((t) => `<a class="badge-pill" href="search.html?q=${encodeURIComponent(t)}">${escapeHtml(t)}</a>`)
@@ -204,7 +257,6 @@ async function render() {
   const hint = document.querySelector(".play-hint");
   hint.textContent = `Playing ${title} · ${w}×${h} · loaded from GameMonetize`;
 
-  const details = await getDetails(id);
   const instrEl = document.getElementById("instructions");
   const aboutEl = document.getElementById("description");
   if (details && details.instructions) {
@@ -220,6 +272,16 @@ async function render() {
     document.getElementById("aboutCard").style.display = "none";
   }
 
+  injectVideoJsonLd({
+    id,
+    title,
+    category,
+    tags,
+    thumb,
+    url,
+    description: details ? details.description : "",
+  });
+
   injectWalkthrough(title);
   renderRelated();
   void titleEl;
@@ -228,7 +290,7 @@ async function render() {
 function fail() {
   document.getElementById("notFound").style.display = "";
   document.getElementById("playerShell").style.display = "none";
-  document.title = "Game not found — BoredPuP";
+  document.title = "Game not found - BoredPuP";
 }
 
 function bindToolbar() {
@@ -242,5 +304,7 @@ function bindToolbar() {
 
 initNav();
 bindToolbar();
+bindShortcuts();
+initPwa();
 render();
 initFooter();

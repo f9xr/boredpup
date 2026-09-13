@@ -1,4 +1,4 @@
-import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton } from "./app.js";
+import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, setCanonical, initPwa } from "./app.js";
 import { getAllGames, searchGames } from "./data.js";
 
 const PAGE_SIZE = 24;
@@ -33,18 +33,18 @@ function loadMore() {
 function render() {
   const grid = document.getElementById("grid");
   if (!query) {
-    document.title = "Search games — BoredPuP";
+    document.title = "Search games - BoredPuP";
     grid.innerHTML = `
       <div class="empty-state" style="grid-column: 1 / -1;">
         <div class="big">What are you in the mood for?</div>
-        <p>Search by title, tag, or category — or <a class="inline-link" href="category.html">browse everything</a>.</p>
+        <p>Search by title, tag, or category - or <a class="inline-link" href="category.html">browse everything</a>.</p>
       </div>`;
     setCountText();
     return;
   }
 
   renderSkeleton(grid, PAGE_SIZE);
-  document.title = `Search “${query}” — BoredPuP`;
+  document.title = `Search “${query}” - BoredPuP`;
 
   try {
     results = searchGames(allGames, query);
@@ -72,6 +72,8 @@ function render() {
 
 async function init() {
   initNav();
+  setCanonical();
+  initPwa();
   const input = document.getElementById("searchInput");
   if (input) input.value = query;
 
