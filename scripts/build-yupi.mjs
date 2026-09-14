@@ -72,7 +72,7 @@ async function fetchPage(slug) {
   try {
     const res = await fetch(`https://yupi.io/game/${slug}`, {
       redirect: "follow",
-      headers: { "user-agent": "Mozilla/5.0 (compatible; BoredPuP/1.0; +https://boredpup.com)" },
+      headers: { "user-agent": "Mozilla/5.0 (compatible; BoredPuP/1.0; +http://www.f9xr.org/boredpup/)" },
     });
     if (!res.ok) return null;
     return await res.text();

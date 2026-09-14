@@ -189,7 +189,7 @@ async function main() {
 }
 
 async function writeSitemap(catalog, categories) {
-  const base = process.env.BOREDPUP_BASE_URL || "https://boredpup.com";
+  const base = (process.env.BOREDPUP_BASE_URL || "http://www.f9xr.org/boredpup/").replace(/\/+$/, "");
   const lastmod = new Date().toISOString().slice(0, 10);
   const urls = [
     "",

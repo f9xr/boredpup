@@ -86,7 +86,7 @@ npm run build:all    # refresh yupi + GD caches, then merge (=> build:feed)
 `build:yupi` curates up to `BOREDPUP_YUPI_COUNT` (default 120) frameable
 games from yupi.io; `build:gd` pulls up to `BOREDPUP_GD_COUNT` (default
 500) from GameDistribution. To point the generated links elsewhere
-(default `https://boredpup.com`):
+(default `http://www.f9xr.org/boredpup/`):
 
 ```sh
 BOREDPUP_BASE_URL=https://your-domain.com npm run build:all
