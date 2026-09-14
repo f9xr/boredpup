@@ -1,56 +1,59 @@
-import { initNav, initFooter, setCanonical, initPwa, escapeHtml } from "./app.js";
+import { initNav, initFooter, setCanonical, initPwa, escapeHtml, safeEmbedUrl, providerOf } from "./app.js";
 import { getAllGames, getCategories, getDetails, getMeta, randomGame } from "./data.js";
 
 const gamesById = new Map();
 
-function safeEmbedUrl(url) {
-  try {
-    const u = new URL(url);
-    if (u.protocol !== "https:") return null;
-    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
-    return u.href;
-  } catch {
-    return null;
-  }
-}
-
-function isAllowedProvider(hostname, pathname) {
-  const host = String(hostname).toLowerCase();
-  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
-  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
-  if (host === "html5.gamedistribution.com") return true;
-  return false;
-}
-
-function providerOf(url) {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
-    if (host === "yupi.io") return "yupi";
-    if (host === "html5.gamedistribution.com") return "gamedistribution";
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
 function bindTabs() {
-  document.querySelectorAll(".tool-tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tool-tab").forEach((b) => {
-        b.classList.toggle("active", b === btn);
-        b.setAttribute("aria-selected", b === btn ? "true" : "false");
-      });
-      document.querySelectorAll(".tool-section").forEach((sec) => {
-        sec.classList.toggle("active", sec.id === `tab-${btn.dataset.tab}`);
-      });
+  const tabs = [...document.querySelectorAll(".tool-tab")];
+  const panels = [...document.querySelectorAll(".tool-section")];
+  if (!tabs.length) return;
+
+  panels.forEach((panel) => {
+    panel.setAttribute("role", "tabpanel");
+    const label = tabs.find((t) => t.dataset.tab === panel.id.replace("tab-", ""));
+    if (label) panel.setAttribute("aria-labelledby", label.id);
+  });
+
+  function activate(btn) {
+    tabs.forEach((b) => {
+      const active = b === btn;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+      b.tabIndex = active ? 0 : -1;
+    });
+    panels.forEach((sec) => {
+      sec.classList.toggle("active", sec.id === `tab-${btn.dataset.tab}`);
+    });
+    btn.focus();
+  }
+
+  tabs.forEach((btn, i) => {
+    const panelId = `tab-${btn.dataset.tab}`;
+    btn.id = btn.id || `${btn.dataset.tab}-tab`;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-controls", panelId);
+    btn.tabIndex = btn.classList.contains("active") ? 0 : -1;
+    btn.addEventListener("click", () => activate(btn));
+    btn.addEventListener("keydown", (e) => {
+      let next = null;
+      if (e.key === "ArrowRight") next = tabs[(i + 1) % tabs.length];
+      else if (e.key === "ArrowLeft") next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === "Home") next = tabs[0];
+      else if (e.key === "End") next = tabs[tabs.length - 1];
+      if (next) {
+        e.preventDefault();
+        activate(next);
+      }
     });
   });
 }
 
 function bindCopy(btnId, elId) {
-  document.getElementById(btnId).addEventListener("click", async () => {
-    const text = document.getElementById(elId).textContent;
+  const btnEl = document.getElementById(btnId);
+  const copyEl = document.getElementById(elId);
+  if (!btnEl || !copyEl) return;
+  btnEl.addEventListener("click", async () => {
+    const text = copyEl.textContent;
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -91,12 +94,12 @@ async function showGameTools(g) {
   playLink.textContent = new URL(playHref, window.location.href).href;
   playLink.href = playHref;
 
-  const embed = `<iframe src="${embedUrl}" width="100%" height="100%" style="aspect-ratio: ${w} / ${h}; border: 0;" allow="autoplay; fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" title="${title.replace(/"/g, "&quot;")}"></iframe>`;
+  const embed = `<iframe src="${escapeHtml(embedUrl)}" width="100%" height="100%" style="aspect-ratio: ${w} / ${h}; border: 0;" allow="autoplay; fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" title="${escapeHtml(title)}"></iframe>`;
   document.getElementById("toolEmbed").textContent = embed;
 
   const walk =
     provider === "gamemonetize"
-      ? `<iframe src="https://gamemonetize.video/?gameid=${encodeURIComponent(id)}&color=%233b9eff" width="100%" height="640" style="border: 0;" allowfullscreen title="Walkthrough for ${title.replace(/"/g, "&quot;")}"></iframe>`
+      ? `<iframe src="https://gamemonetize.video/?gameid=${encodeURIComponent(id)}&color=%233b9eff" width="100%" height="640" style="border: 0;" allowfullscreen title="Walkthrough for ${escapeHtml(title)}"></iframe>`
       : "No walkthrough embed available for " + ({ yupi: "yupi.io", gamedistribution: "GameDistribution" }[provider] || "this provider") + " games - play it here: " + new URL(playHref, window.location.href).href;
   document.getElementById("toolWalk").textContent = walk;
 
@@ -109,6 +112,7 @@ async function showGameTools(g) {
 function bindPicker() {
   const input = document.getElementById("toolPick");
   const results = document.getElementById("toolResults");
+  if (!input || !results) return;
   let timer = null;
 
   input.addEventListener("input", () => {
@@ -127,7 +131,7 @@ function bindPicker() {
         ? matches
             .map(
               (g) =>
-                `<button class="tool-result" type="button" data-id="${g[0]}">
+                `<button class="tool-result" type="button" data-id="${escapeHtml(g[0])}">
                    <img src="${escapeHtml(g[4])}" alt="" width="64" height="48" loading="lazy">
                    <span>${escapeHtml(g[1])}</span>
                  </button>`
@@ -148,13 +152,15 @@ function bindPicker() {
 
 function bindFeed() {
   const cat = document.getElementById("feedCat");
+  const genBtn = document.getElementById("genFeed");
+  if (!cat || !genBtn) return;
   getCategories().then((cats) => {
     cat.innerHTML =
       `<option value="All">All</option>` +
       cats.map((c) => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
   });
 
-  document.getElementById("genFeed").addEventListener("click", () => {
+  genBtn.addEventListener("click", () => {
     const category = encodeURIComponent(cat.value);
     const popularity = encodeURIComponent(document.getElementById("feedPop").value);
     const amount = encodeURIComponent(document.getElementById("feedAmount").value);
@@ -166,7 +172,9 @@ function bindFeed() {
 }
 
 async function bindRandom() {
-  document.getElementById("randPick").addEventListener("click", async () => {
+  const btn = document.getElementById("randPick");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
     const g = await randomGame();
     if (!g) return;
     const host = document.getElementById("randOut");

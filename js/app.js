@@ -9,6 +9,38 @@ export function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+export function isAllowedProvider(hostname, pathname) {
+  const host = String(hostname).toLowerCase();
+  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
+  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
+  if (host === "html5.gamedistribution.com") return true;
+  return false;
+}
+
+export function safeEmbedUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:") return null;
+    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
+export function providerOf(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
+    if (host === "yupi.io") return "yupi";
+    if (host === "html5.gamedistribution.com") return "gamedistribution";
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export function setCanonical() {
   const existing = document.querySelector('link[rel="canonical"]');
   const url = window.location.href.split("#")[0];
@@ -62,7 +94,7 @@ export function gameCard(g) {
     tags.length && tags[0] ? `<span class="game-badge">${escapeHtml(tags[0])}</span>` : "";
 
   return `
-  <article class="game-card" data-id="${id}">
+  <article class="game-card" data-id="${escapeHtml(id)}">
     <a class="game-thumb-link" href="${href}" aria-label="Play ${escapeHtml(title)}">
       <div class="game-thumb">
         <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" width="512" height="384"
@@ -70,7 +102,7 @@ export function gameCard(g) {
         ${tagBadge}
       </div>
     </a>
-    <button class="fav-btn${faved ? " active" : ""}" type="button" data-id="${id}"
+    <button class="fav-btn${faved ? " active" : ""}" type="button" data-id="${escapeHtml(id)}"
             aria-pressed="${faved}" aria-label="${faved ? "Remove from favorites" : "Add to favorites"}"
             title="${faved ? "Saved" : "Save to favorites"}"><span>${faved ? "♥" : "♡"}</span></button>
     <a class="game-body" href="${href}" tabindex="-1">
@@ -244,16 +276,19 @@ function applyFooterReveal() {
   const footer = document.querySelector(".footer");
   if (!footer) return;
   const mql = window.matchMedia("(min-width: 1080px)");
+  let rafId = null;
   function update() {
-    if (mql.matches) {
-      document.body.classList.add("reveal-footer");
-      requestAnimationFrame(() => {
+    if (rafId != null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      if (mql.matches) {
+        document.body.classList.add("reveal-footer");
         document.body.style.marginBottom = `${footer.offsetHeight}px`;
-      });
-    } else {
-      document.body.classList.remove("reveal-footer");
-      document.body.style.marginBottom = "";
-    }
+      } else {
+        document.body.classList.remove("reveal-footer");
+        document.body.style.marginBottom = "";
+      }
+    });
   }
   update();
   mql.addEventListener("change", update);
@@ -280,26 +315,6 @@ export function sample(games, n) {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy.slice(0, n);
-}
-
-export function shuffle(games) {
-  const copy = [...games];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-export function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
 }
 
 let installPrompt = null;

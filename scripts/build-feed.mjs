@@ -190,12 +190,11 @@ async function main() {
 
 async function writeSitemap(catalog, categories) {
   const base = process.env.BOREDPUP_BASE_URL || "https://boredpup.com";
+  const lastmod = new Date().toISOString().slice(0, 10);
   const urls = [
     "",
     "/category.html",
-    "/search.html",
     "/developers.html",
-    "/my-games.html",
     "/pages/about.html",
     "/pages/contact.html",
     "/pages/parents.html",
@@ -211,7 +210,7 @@ async function writeSitemap(catalog, categories) {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    urls.map((u) => `  <url><loc>${base}${u}</loc></url>`).join("\n") +
+    urls.map((u) => `  <url><loc>${base}${u}</loc><lastmod>${lastmod}</lastmod></url>`).join("\n") +
     `\n</urlset>\n`;
 
   await writeFile(join(root, "sitemap.xml"), xml, "utf8");

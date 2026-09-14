@@ -1,4 +1,4 @@
-import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa } from "./app.js";
+import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa, safeEmbedUrl, providerOf } from "./app.js";
 import { getGame, getDetails, getAllGames, markRecent } from "./data.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -7,38 +7,6 @@ const gameId = params.get("id");
 const playerFrame = document.getElementById("playerFrame");
 const iframeSlot = document.getElementById("iframeSlot");
 const activeGameUrl = { current: null };
-
-function safeEmbedUrl(url) {
-  try {
-    const u = new URL(url);
-    if (u.protocol !== "https:") return null;
-    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
-    return u.href;
-  } catch {
-    return null;
-  }
-}
-
-function isAllowedProvider(hostname, pathname) {
-  const host = String(hostname).toLowerCase();
-  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
-  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
-  if (host === "html5.gamedistribution.com") return true;
-  return false;
-}
-
-function providerOf(url) {
-  try {
-    const u = new URL(url);
-    const host = u.hostname.toLowerCase();
-    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
-    if (host === "yupi.io") return "yupi";
-    if (host === "html5.gamedistribution.com") return "gamedistribution";
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
 
 const PROVIDER_LABELS = {
   gamemonetize: "GameMonetize",
@@ -49,12 +17,16 @@ const PROVIDER_LABELS = {
 function buildIframe(slot, url, w, h) {
   const iframe = document.createElement("iframe");
   iframe.src = url;
-  iframe.title = "Game";
+  iframe.title = currentGame ? `${currentGame[1]} - play free online` : "Game";
   iframe.setAttribute("width", "100%");
   iframe.setAttribute("height", "100%");
-  iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture");
+  iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture; clipboard-write; gamepad");
   iframe.setAttribute("allowfullscreen", "");
   iframe.setAttribute("referrerpolicy", "no-referrer");
+  iframe.setAttribute(
+    "sandbox",
+    "allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock allow-presentation allow-downloads"
+  );
   iframe.style.aspectRatio = `${w} / ${h}`;
   iframe.style.background = "#000";
   slot.innerHTML = "";
@@ -186,7 +158,9 @@ function ensureJqueryShim() {
     const api = {
       el,
       append(html) {
-        if (el) el.insertAdjacentHTML("beforeend", html);
+        if (el && /(?:on\w+=|<\s*script|<object|<\s*embed)/i.test(String(html)) === false) {
+          el.insertAdjacentHTML("beforeend", String(html));
+        }
         return api;
       },
       remove() {
@@ -221,7 +195,6 @@ async function renderRelated() {
 }
 
 async function render() {
-  const titleEl = document.title;
   const crumbs = document.querySelector(".crumbs");
 
   if (!gameId) {
@@ -316,7 +289,6 @@ async function render() {
     showWalkthroughMessage(title);
   }
   renderRelated();
-  void titleEl;
 }
 
 function fail() {
@@ -326,9 +298,12 @@ function fail() {
 }
 
 function bindToolbar() {
-  document.getElementById("refreshBtn").addEventListener("click", restartGame);
-  document.getElementById("fullBtn").addEventListener("click", toggleFullscreen);
-  document.getElementById("shareBtn").addEventListener("click", shareLink);
+  const refresh = document.getElementById("refreshBtn");
+  const full = document.getElementById("fullBtn");
+  const share = document.getElementById("shareBtn");
+  if (refresh) refresh.addEventListener("click", restartGame);
+  if (full) full.addEventListener("click", toggleFullscreen);
+  if (share) share.addEventListener("click", shareLink);
   document.addEventListener("fullscreenchange", () => {
     if (!document.fullscreenElement) playerFrame.classList.remove("fullscreen-mode");
   });

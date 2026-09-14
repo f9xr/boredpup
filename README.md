@@ -33,7 +33,7 @@ Vercel, any static host). No backend required.
 - `scripts/build-feed.mjs` downloads the GameMonetize JSON feed
   (`https://rss.gamemonetize.com/rssfeed.php?format=json…`) and writes:
   - `data/catalog.json` - very slim catalog as rows
-    `[id, title, category, tags, thumb]` for all ~5,000 games (~880 KB;
+    `[id, title, category, tags, thumb]` for all ~5,600 games (~1 MB;
     `url`/`width`/`height` intentionally live in the detail shards)
   - `data/details-<shard>.json` - 32 shards containing
     `{ description, instructions, url, width, height }`, fetched lazily on

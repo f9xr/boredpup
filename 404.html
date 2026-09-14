@@ -6,14 +6,17 @@
   <title>Not Found - BoredPuP</title>
   <meta name="description" content="Oops - that game got lost. Play one of these instead.">
   <meta name="robots" content="noindex,follow">
-  <link rel="canonical" href=".">
+<link rel="canonical" href="https://boredpup.com/404.html">
   <meta property="og:site_name" content="BoredPuP">
   <meta property="og:title" content="Not Found - BoredPuP">
   <meta property="og:description" content="That game got lost. Try one of these instead.">
   <meta property="og:type" content="website">
-  <meta property="og:url" id="ogUrl" content=".">
-  <meta property="og:image" content="./assets/og-image.png">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:url" content="https://boredpup.com/404.html">
+  <meta property="og:image" content="https://boredpup.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://boredpup.com/assets/og-image.png">
   <meta name="theme-color" content="#000000">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
@@ -25,11 +28,13 @@
 </head>
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <header class="nav">
     <div class="nav-inner">
       <a class="nav-logo" href="index.html" aria-label="BoredPuP home">
         <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
-        Bored<span style="color: var(--mute)">PuP</span>
+        Bored<span class="logo-muted">PuP</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
         <a href="index.html">Home</a>
@@ -49,14 +54,14 @@
     </div>
   </header>
 
-  <div class="mobile-nav" id="mobileNav">
+<nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
     <a href="index.html">Home</a>
     <a href="category.html">All games</a>
     <a href="#" data-action="random">Surprise me</a>
     <a href="search.html">Search</a>
-  </div>
+  </nav>
 
-  <main class="glow-section glow-red">
+  <main id="main" class="glow-section glow-red">
     <div class="container" style="padding-top: var(--space-section); padding-bottom: var(--space-xxxl); max-width: 760px;">
       <div style="text-align: center;">
         <div class="display-xxl" style="margin-bottom: var(--space-lg); opacity: 0.7;">404</div>
@@ -87,16 +92,16 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a class="nav-logo" href="index.html">
+<a class="nav-logo" href="index.html" aria-label="BoredPuP home">
             <span class="logo-mark"><img src="assets/logo.svg" alt="" width="26" height="26"></span>
-            Bored<span style="color: var(--mute)">PuP</span>
+            Bored<span class="logo-muted">PuP</span>
           </a>
           <p>Welcome to BoredPuP, home of thousands of free online video games
           that can be played on nearly every phone, tablet, and PC - with no
           software downloads necessary.</p>
         </div>
         <div>
-          <h4>Play</h4>
+          <h3>Play</h3>
           <a href="category.html">All games</a>
           <a href="index.html#new">New games</a>
           <a href="index.html#trending">Good picks</a>
@@ -104,11 +109,11 @@
           <a href="my-games.html">Favorites</a>
         </div>
         <div>
-          <h4>Categories</h4>
+          <h3>Categories</h3>
           <div id="footerCats"></div>
         </div>
         <div>
-          <h4>About</h4>
+          <h3>About</h3>
           <a href="pages/about.html">About us</a>
           <a href="pages/contact.html">Contact</a>
           <a href="developers.html">Developer tools</a>

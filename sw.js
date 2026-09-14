@@ -1,14 +1,20 @@
 /* BoredPuP service worker - offline shell + runtime caching.
    Scope: the directory containing this file (repo root). */
 
-const CACHE = "boredpup-static-v2";
-const RUNTIME = "boredpup-runtime-v2";
+const CACHE = "boredpup-static-v3";
+const RUNTIME = "boredpup-runtime-v3";
 const PRECACHE = [
   "./",
   "./index.html",
   "./css/style.css",
   "./js/app.js",
   "./js/data.js",
+  "./manifest.webmanifest",
+  "./assets/favicon.svg",
+  "./assets/logo.svg",
+  "./assets/apple-touch-icon.png",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png",
   "./data/catalog.json",
 ];
 
@@ -45,8 +51,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+          if (res.ok) {
+            const copy = res.clone();
+            cachePut(CACHE, req, copy);
+          }
           return res;
         })
         .catch(() => caches.match("./index.html"))
@@ -65,7 +73,7 @@ self.addEventListener("fetch", (event) => {
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(RUNTIME).then((c) => c.put(req, copy));
+            cachePut(RUNTIME, req, copy);
           }
           return res;
         })
@@ -75,6 +83,10 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
+function cachePut(cacheName, req, res) {
+  caches.open(cacheName).then((c) => c.put(req, res)).catch(() => {});
+}
+
 function cacheFirst(req) {
   return caches.match(req).then((cached) => {
     if (cached) {
@@ -82,7 +94,7 @@ function cacheFirst(req) {
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(RUNTIME).then((c) => c.put(req, copy));
+            cachePut(RUNTIME, req, copy);
           }
         })
         .catch(() => {});
@@ -92,7 +104,7 @@ function cacheFirst(req) {
       .then((res) => {
         if (res && res.ok) {
           const copy = res.clone();
-          caches.open(RUNTIME).then((c) => c.put(req, copy));
+          cachePut(RUNTIME, req, copy);
         }
         return res;
       })

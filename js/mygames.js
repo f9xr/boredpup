@@ -1,5 +1,5 @@
 import { initNav, initFooter, setCanonical, initPwa, renderGameGrid, renderSkeleton, toast } from "./app.js";
-import { getAllGames, getFavorites, getRecent } from "./data.js";
+import { getAllGames, getFavorites, getRecent, RECENT_KEY, FAVS_KEY } from "./data.js";
 
 function emptyState(message, cta) {
   return `
@@ -70,8 +70,8 @@ async function init() {
 
   document.getElementById("clearAll").addEventListener("click", () => {
     try {
-      localStorage.removeItem("boredpup:recent:v1");
-      localStorage.removeItem("boredpup:favs:v1");
+      localStorage.removeItem(RECENT_KEY);
+      localStorage.removeItem(FAVS_KEY);
     } catch {
       /* ignore */
     }

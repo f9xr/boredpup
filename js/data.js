@@ -11,8 +11,9 @@ export const FEED_URL =
 
 const DETAIL_SHARDS = 32;
 const LOCAL_KEY = "boredpup:catalog:v2";
-const RECENT_KEY = "boredpup:recent:v1";
-const FAVS_KEY = "boredpup:favs:v1";
+export const RECENT_KEY = "boredpup:recent:v1";
+export const FAVS_KEY = "boredpup:favs:v1";
+const DETAILS_CACHE_MAX = 200;
 
 let liveFull = [];
 
@@ -58,6 +59,14 @@ async function fetchJson(url, { cache = "default" } = {}) {
 
 let catalogPromise = null;
 let detailsCache = {};
+
+function cacheDetails(id, value) {
+  const keys = Object.keys(detailsCache);
+  if (keys.length >= DETAILS_CACHE_MAX) {
+    delete detailsCache[keys[0]];
+  }
+  detailsCache[id] = value;
+}
 
 function normalizeLiveGame(g) {
   return [
@@ -177,7 +186,7 @@ export async function getDetails(id) {
         width: entry[3],
         height: entry[4],
       };
-      detailsCache[id] = out;
+      cacheDetails(id, out);
       return out;
     }
   } catch {
@@ -186,10 +195,10 @@ export async function getDetails(id) {
 
   const live = liveFull.find((g) => g.id === id);
   if (live) {
-    detailsCache[id] = live;
+    cacheDetails(id, live);
     return live;
   }
-  detailsCache[id] = null;
+  cacheDetails(id, null);
   return null;
 }
 
@@ -202,10 +211,6 @@ export async function randomGame(excludeId) {
     g = games[Math.floor(Math.random() * games.length)];
   }
   return g;
-}
-
-export function categoryGames(games, category) {
-  return games.filter((g) => g[2] === category);
 }
 
 export function searchGames(games, query) {

@@ -87,7 +87,8 @@ async function init() {
       const host = document.getElementById("trendGrid");
       renderSkeleton(host, PAGE_SIZE);
       setTimeout(() => {
-        const picks = sample(allGames.filter((g) => !initialGoodPicks.some((p) => p[0] === g[0])), PAGE_SIZE);
+        const pickIds = new Set(initialGoodPicks.map((p) => p[0]));
+      const picks = sample(allGames.filter((g) => !pickIds.has(g[0])), PAGE_SIZE);
         renderGameGrid(host, picks.length ? picks : sample(allGames, PAGE_SIZE));
         btn.disabled = false;
         btn.textContent = "Shuffle again →";
