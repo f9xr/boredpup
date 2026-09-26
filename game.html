@@ -4,8 +4,14 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.gamemonetize.com https://img.gamedistribution.com https://yupi.io https://shipthing.com https://1000tools.best https://smolsaas.com https://smolhunt.com https://api.producthunt.com https://racoondr.com https://launchstag.com; connect-src 'self' https://rss.gamemonetize.com; frame-src 'self' https://html5.gamemonetize.com https://gamemonetize.co https://gamemonetize.com https://yupi.io https://html5.gamedistribution.com; form-action 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Loading game… - BoredPuP</title>
+  <title>Play free online games - BoredPuP</title>
   <meta name="description" content="Play free online games instantly on BoredPuP - no downloads, no sign-ups.">
+  <noscript><style>
+    /* Without JS there is no player to wait for, so the skeleton and the
+       "Loading game…" placeholder are removed rather than left spinning. */
+    #playerShell, #notFound { display: none !important; }
+    #nojs { display: block !important; }
+  </style></noscript>
 <link rel="canonical" href="https://www.f9xr.org/boredpup/game.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="BoredPuP">
@@ -76,6 +82,16 @@
         <div id="notFound" class="empty-state" style="margin-top: var(--space-xxl); display: none;">
           <div class="big">Game not found</div>
           <p>The game you're looking for isn't in the catalog. <a class="inline-link" href="search.html">Search again</a> or <a class="inline-link" href="category.html">browse all games</a>.</p>
+        </div>
+
+        <div class="empty-state" id="nojs" style="display: none; margin-top: var(--space-xxl);">
+          <div class="big">JavaScript is turned off</div>
+          <p>Games on BoredPuP run in your browser, so they need JavaScript to load. There is nothing wrong with this
+          page - it just cannot start the game.</p>
+          <p style="margin-top: var(--space-md);">
+            <a class="btn btn-primary" href="category.html">Browse all games</a>
+            <a class="btn btn-outline" href="search.html">Search the catalog</a>
+          </p>
         </div>
 
         <div class="player-shell" id="playerShell">
