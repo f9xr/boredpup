@@ -1089,7 +1089,8 @@ p {
 }
 
 .code-window-body #gamemonetize-video iframe,
-.code-window-body #gamemonetize-walkthrough iframe {
+.code-window-body #gamemonetize-walkthrough iframe,
+.code-window-body .walkthrough-frame {
   width: 100%;
   height: 100%;
   min-height: 540px;

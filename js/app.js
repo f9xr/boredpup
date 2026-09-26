@@ -93,12 +93,12 @@ export function gameCard(g) {
     <a class="game-thumb-link" href="${href}" aria-label="Play ${escapeHtml(title)}">
       <div class="game-thumb">
         <img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" width="512" height="384"
-             referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('no-img')">
+             referrerpolicy="no-referrer" data-fallback>
         ${tagBadge}
       </div>
     </a>
     <button class="fav-btn${faved ? " active" : ""}" type="button" data-id="${escapeHtml(id)}"
-            aria-pressed="${faved}" aria-label="Favorite" aria-describedby="none"
+            aria-pressed="${faved}" aria-label="Favorite"
             title="${faved ? "Saved" : "Save to favorites"}"><span>${faved ? "♥" : "♡"}</span></button>
     <a class="game-body" href="${href}" tabindex="-1">
       <div class="game-title">${escapeHtml(title)}</div>
@@ -107,11 +107,24 @@ export function gameCard(g) {
   </article>`;
 }
 
+/* Provider thumbnails 404 reasonably often. The fallback used to be an inline
+   onerror attribute, which forces 'unsafe-inline' into the CSP and is inlined
+   into every card. A capture-phase delegated listener does the same job with
+   no inline handler, and also covers cards already in the DOM when it binds. */
+function markBrokenThumbnails(e) {
+  const img = e.target;
+  if (img && img.tagName === "IMG" && img.hasAttribute("data-fallback")) {
+    img.parentNode && img.parentNode.classList.add("no-img");
+  }
+}
+
 let cardActionsBound = false;
 
 export function initCardActions() {
   if (cardActionsBound) return;
   cardActionsBound = true;
+  // Capture phase: error events on <img> do not bubble, but they do capture.
+  document.addEventListener("error", markBrokenThumbnails, true);
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".fav-btn");
     if (!btn) return;

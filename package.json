@@ -11,6 +11,8 @@
     "build:gd": "node scripts/build-gd.mjs",
     "build:all": "node scripts/build-yupi.mjs && node scripts/build-gd.mjs && node scripts/build-feed.mjs",
     "sync:base": "node scripts/sync-base-url.mjs",
+    "sync:csp": "node scripts/inject-csp.mjs",
+    "sync": "node scripts/sync-base-url.mjs && node scripts/inject-csp.mjs",
     "validate": "node scripts/validate.mjs",
     "test": "node scripts/validate.mjs",
     "serve": "node scripts/serve.mjs . 8080"

@@ -62,10 +62,20 @@ function toggleFullscreen() {
 function bindShortcuts() {
   document.addEventListener("keydown", (e) => {
     if (e.repeat) return;
-    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    // Do not steal keys from a text field, a contenteditable region, or the
+    // user's own browser/OS shortcuts. Ctrl+R is reload; ⌘R is reload; Alt+F
+    // moves focus between frames. Plain "r" alone is the only safe trigger.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     const key = e.key.toLowerCase();
-    if (key === "r") restartGame();
-    else if (key === "f") toggleFullscreen();
+    if (key === "r") {
+      e.preventDefault();
+      restartGame();
+    } else if (key === "f") {
+      e.preventDefault();
+      toggleFullscreen();
+    }
   });
 }
 
@@ -120,56 +130,47 @@ async function shareLink() {
   }
 }
 
+/* The GameMonetize walkthrough widget used to be injected straight into this
+   document, which required shipping a jQuery-compatible `$(...).append()`
+   shim with a hand-rolled HTML sanitizer as a guard.
+
+   That guard was not a guard. The sanitizer regex was /(?:on\w+=|<\s*script|
+   <object|<\s*embed)/i, and \w does not match whitespace, so "onerror\n=",
+   "onerror =" and "javascript:" URLs all passed it. More fundamentally, the
+   injected api.gamemonetize.com/video.js ran in *our* origin, so it could
+   bypass our own shim whenever it liked - sanitizing the output of a script
+   that already has full DOM access is not a boundary.
+
+   The widget now lives in walkthrough.html, loaded into an iframe sandboxed
+   WITHOUT allow-same-origin, so it gets an opaque origin and cannot reach this
+   document, our storage, or our cookies. A separate file rather than srcdoc
+   also means the frame has its own CSP instead of inheriting and being unable
+   to loosen ours. */
+const WALKTHROUGH_SANDBOX = "allow-scripts allow-popups allow-popups-to-escape-sandbox";
+
 function injectWalkthrough(title) {
   const host = document.getElementById("walkthroughSlot");
   if (!host) return;
 
-  ensureJqueryShim();
+  const frame = document.createElement("iframe");
+  frame.title = "Game walkthrough";
+  frame.className = "walkthrough-frame";
+  frame.setAttribute("sandbox", WALKTHROUGH_SANDBOX);
+  frame.setAttribute("referrerpolicy", "no-referrer");
+  frame.setAttribute("loading", "lazy");
+  frame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+  frame.src = `walkthrough.html?id=${encodeURIComponent(gameId || "")}`;
 
-  window.VIDEO_OPTIONS = {
-    gameid: gameId,
-    width: "100%",
-    height: "640px",
-    color: "#3b9eff",
-    getAds: "true",
-  };
+  host.innerHTML = "";
+  host.appendChild(frame);
 
-  const script = document.createElement("script");
-  script.src = "https://api.gamemonetize.com/video.js";
-  script.id = "gamemonetize-video-api";
-  script.async = true;
-  script.onerror = () => {
-    showWalkthroughMessage(title);
-  };
-  document.head.appendChild(script);
-
+  // If the widget never produces a player, say so instead of leaving a gap.
+  let settled = false;
   setTimeout(() => {
-    const box = document.getElementById("gamemonetize-video");
-    if (box && !box.querySelector("iframe") && !box.querySelector("video") && box.childElementCount === 0) {
-      showWalkthroughMessage(title);
-    }
-  }, 4500);
-}
-
-function ensureJqueryShim() {
-  if (window.$) return;
-  window.$ = (selector) => {
-    const el = document.querySelector(selector);
-    const api = {
-      el,
-      append(html) {
-        if (el && /(?:on\w+=|<\s*script|<object|<\s*embed)/i.test(String(html)) === false) {
-          el.insertAdjacentHTML("beforeend", String(html));
-        }
-        return api;
-      },
-      remove() {
-        if (el) el.remove();
-        return api;
-      },
-    };
-    return api;
-  };
+    if (settled) return;
+    settled = true;
+    showWalkthroughMessage(title);
+  }, 9000);
 }
 
 function showWalkthroughMessage(title) {
@@ -184,14 +185,29 @@ function showWalkthroughMessage(title) {
 
 async function renderRelated() {
   const grid = document.getElementById("relatedGrid");
+  if (!grid) return;
   renderSkeleton(grid, 10);
   const all = await getAllGames();
-  const sameCat = all.filter((g) => g[2] === currentGame[2] && g[0] !== currentGame[0]);
-  const rest = all.filter((g) => g[2] !== currentGame[2] && g[0] !== currentGame[0]);
-  const picks = [...sample(sameCat, 10), ...sample(rest, 10)].slice(0, 10);
+  if (!currentGame) return;
+  // One pass, not two. This used to run two full filters over all 5,621 rows
+  // on every play-page view, then concatenated two samples and sliced to 10 -
+  // which meant the "rest" sample was discarded outright whenever the
+  // same-category sample was already full, so the second half was wasted work.
+  const sameCat = [];
+  const rest = [];
+  for (const g of all) {
+    if (g[0] === currentGame[0]) continue;
+    (g[2] === currentGame[2] ? sameCat : rest).push(g);
+  }
+  const picks = [...sample(sameCat, 8), ...sample(rest, 8)].slice(0, 10);
   const title = document.getElementById("relatedTitle");
-  title.textContent = sameCat.length ? `More ${currentGame[2]} games` : "More to play";
+  if (title) title.textContent = sameCat.length ? `More ${currentGame[2]} games` : "More to play";
   renderGameGrid(grid, picks);
+}
+
+function setMeta(selector, content) {
+  const el = document.querySelector(selector);
+  if (el) el.setAttribute("content", content);
 }
 
 async function render() {
@@ -228,15 +244,22 @@ async function render() {
 
   markRecent(id, title);
 
-  document.querySelector('meta[name="description"]').setAttribute("content", `Play ${title} - a free ${category} game, online instantly on BoredPuP. No downloads, no sign-ups.`);
-  document.querySelector("#ogTitle").setAttribute("content", `${title} - Play free online`);
-  document.querySelector("#ogDesc").setAttribute("content", `Play ${title}, a free ${category} game, in your browser right now on BoredPuP.`);
-  document.querySelector("#ogImage").setAttribute("content", thumb);
-  document.querySelector("#ogUrl").setAttribute("content", window.location.href);
-  if (document.querySelector("#twCard")) document.querySelector("#twCard").setAttribute("content", "summary_large_image");
-  if (document.querySelector("#twTitle")) document.querySelector("#twTitle").setAttribute("content", `${title} - Play free online`);
-  if (document.querySelector("#twDesc")) document.querySelector("#twDesc").setAttribute("content", `Play ${title}, a free ${category} game, right now on BoredPuP.`);
-  if (document.querySelector("#twImg")) document.querySelector("#twImg").setAttribute("content", thumb);
+  setMeta('meta[name="description"]', `Play ${title} - a free ${category} game, online instantly on BoredPuP. No downloads, no sign-ups.`);
+  setMeta("#ogTitle", `${title} - Play free online`);
+  setMeta("#ogDesc", `Play ${title}, a free ${category} game, in your browser right now on BoredPuP.`);
+  setMeta("#ogImage", thumb);
+  setMeta("#ogUrl", window.location.href);
+  setMeta("#twCard", "summary_large_image");
+  setMeta("#twTitle", `${title} - Play free online`);
+  setMeta("#twDesc", `Play ${title}, a free ${category} game, right now on BoredPuP.`);
+  setMeta("#twImg", thumb);
+  // game.html ships og:image:width/height as 1200x630 for the default card, but
+  // the provider thumbnail swapped in above is 512x384. Leaving the declared
+  // dimensions stale on every single game page is a lie the unfurlers read.
+  setMeta("#ogImageW", "512");
+  setMeta("#ogImageH", "384");
+  setMeta("#twImageW", "512");
+  setMeta("#twImageH", "384");
   document.title = `${title} - Play Free Online on BoredPuP`;
   setCanonical();
 
