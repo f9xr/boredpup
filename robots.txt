@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: http://www.f9xr.org/boredpup//sitemap.xml
+Sitemap: https://www.f9xr.org/boredpup/sitemap.xml

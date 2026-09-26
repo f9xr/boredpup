@@ -1,0 +1,240 @@
+/* BoredPuP - data and link validation.
+   Zero dependencies, no test framework. Run with `npm run validate`.
+
+   This is the guard the data-refresh workflow lacked. Previously a provider
+   returning an empty or malformed feed, a duplicate id creeping in, or a shard
+   mapping drifting out of sync would all be committed straight to main with no
+   error and no alert - and a shard mismatch breaks every game page at once,
+   silently. */
+
+import { readFile, readdir, stat } from "node:fs/promises";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+import { CANONICAL_CATEGORIES, isCanonical } from "../js/categories.js";
+import { DETAIL_SHARDS, shardOf } from "../js/shard.js";
+import { isAllowedEmbedUrl } from "../js/embed.js";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const dataDir = join(root, "data");
+
+const errors = [];
+const warnings = [];
+const fail = (msg) => errors.push(msg);
+const warn = (msg) => warnings.push(msg);
+
+const readJson = async (p) => JSON.parse(await readFile(join(root, p), "utf8"));
+
+async function validateCatalog() {
+  const catalog = await readJson("data/catalog.json");
+  const meta = catalog.meta;
+  const games = catalog.games;
+
+  if (!Array.isArray(games)) throw new Error("catalog.json: games is not an array");
+  if (!games.length) throw new Error("catalog.json: games is empty - refusing to pass");
+
+  if (meta.count !== games.length) {
+    fail(`meta.count is ${meta.count} but catalog has ${games.length} rows`);
+  }
+
+  const ids = new Set();
+  const seenTitles = new Map();
+  for (const [i, g] of games.entries()) {
+    if (!Array.isArray(g) || g.length !== 5) {
+      fail(`row ${i} is not a 5-tuple: ${JSON.stringify(g).slice(0, 80)}`);
+      continue;
+    }
+    const [id, title, category, tags, thumb] = g;
+    if (!id || typeof id !== "string") fail(`row ${i} has an empty id`);
+    if (ids.has(id)) fail(`duplicate id: ${id}`);
+    ids.add(id);
+
+    if (!title || !String(title).trim()) fail(`game ${id} has a blank title`);
+    if (!category || !String(category).trim()) {
+      fail(`game ${id} has a blank category`);
+    } else if (!isCanonical(category)) {
+      fail(`game ${id} has non-canonical category "${category}"`);
+    }
+    if (!Array.isArray(tags)) fail(`game ${id} has non-array tags`);
+    if (typeof thumb !== "string" || !/^https:\/\//.test(thumb)) {
+      warn(`game ${id} has a non-https or missing thumbnail`);
+    }
+    if (title && category) {
+      const key = `${title.toLowerCase().slice(0, 60)}|${category.toLowerCase()}`;
+      seenTitles.set(key, (seenTitles.get(key) || 0) + 1);
+    }
+  }
+
+  const dupes = [...seenTitles.entries()].filter(([, n]) => n > 1);
+  if (dupes.length) {
+    warn(`${dupes.length} title+category pairs appear more than once (top: ${dupes[0][0]} x${dupes[0][1]})`);
+  }
+
+  // Categories present in the data must match meta.
+  const counted = new Map();
+  for (const g of games) counted.set(g[2], (counted.get(g[2]) || 0) + 1);
+  const metaCounted = new Map(meta.categories.map((c) => [c.name, c.count]));
+  for (const [name, n] of counted) {
+    if (metaCounted.get(name) !== n) {
+      fail(`category "${name}": meta says ${metaCounted.get(name)}, rows say ${n}`);
+    }
+  }
+  if (metaCounted.size !== counted.size) {
+    fail(`meta lists ${metaCounted.size} categories, data has ${counted.size}`);
+  }
+  const stray = [...metaCounted.keys()].filter((n) => !CANONICAL_CATEGORIES.includes(n));
+  if (stray.length) fail(`meta has non-canonical categories: ${stray.join(", ")}`);
+
+  return { games, ids, meta };
+}
+
+async function validateShards(ids) {
+  const files = (await readdir(dataDir)).filter((f) => /^details-\d+\.json$/.test(f));
+  if (!files.length) throw new Error("no detail shards found");
+
+  const expected = new Map();
+  for (const id of ids) expected.set(shardOf(id), id);
+
+  const found = new Set();
+  const sizes = [];
+  const perShard = new Map();
+
+  for (const f of files) {
+    const n = Number(/^details-(\d+)\.json$/.exec(f)[1]);
+    if (n >= DETAIL_SHARDS) fail(`${f} has an out-of-range shard number`);
+    const raw = await readFile(join(dataDir, f), "utf8");
+    sizes.push([f, Buffer.byteLength(raw)]);
+    let obj;
+    try {
+      obj = JSON.parse(raw);
+    } catch (e) {
+      fail(`${f} is not valid JSON: ${e.message}`);
+      continue;
+    }
+    for (const [id, entry] of Object.entries(obj)) {
+      found.add(id);
+      perShard.set(n, (perShard.get(n) || 0) + 1);
+
+      if (!Array.isArray(entry) || entry.length !== 5) {
+        fail(`${f}: entry ${id} is not a 5-tuple`);
+        continue;
+      }
+      if (!isAllowedEmbedUrl(entry[2])) {
+        fail(`${f}: entry ${id} has a non-allowlisted or non-https url: ${String(entry[2]).slice(0, 60)}`);
+      }
+      // THE parity check: this id must live in the shard the client will ask for.
+      if (shardOf(id) !== n) {
+        fail(`${f}: entry ${id} belongs in details-${shardOf(id)}.json (shard mapping is out of sync)`);
+      }
+    }
+  }
+
+  for (const id of ids) {
+    if (!found.has(id)) fail(`catalog id ${id} has no detail entry`);
+  }
+  for (const id of found) {
+    if (!ids.has(id)) fail(`detail entry ${id} is not in the catalog (orphan)`);
+  }
+
+  // Balance. A bad hash makes this explode, which is how the 21x skew shipped.
+  const counts = [...perShard.values()];
+  const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
+  const worst = Math.max(...counts) / mean;
+  if (worst > 1.5) {
+    fail(`shard distribution is skewed: worst shard is ${worst.toFixed(2)}x the mean (want < 1.5x)`);
+  }
+
+  sizes.sort((a, b) => b[1] - a[1]);
+  const kb = (b) => `${(b / 1024).toFixed(1)}KB`;
+  return {
+    shards: files.length,
+    entries: found.size,
+    largest: `${sizes[0][0]} ${kb(sizes[0][1])}`,
+    skew: `${worst.toFixed(2)}x`,
+  };
+}
+
+async function validateHtml() {
+  const pages = [];
+  for (const f of (await readdir(root)).filter((f) => f.endsWith(".html"))) pages.push(f);
+  for (const f of await readdir(join(root, "pages"))) {
+    if (f.endsWith(".html")) pages.push(`pages/${f}`);
+  }
+
+  for (const page of pages) {
+    const html = await readFile(join(root, page), "utf8");
+
+    // A malformed base URL was shipped in 54 places; catch the class of it.
+    for (const m of html.matchAll(/(?:rel="canonical"[^>]*href=|property="og:url"[^>]*content=)"([^"]*)"/g)) {
+      const url = m[1];
+      if (url.startsWith("http://")) fail(`${page}: plaintext http URL "${url}"`);
+      if (/\/\/[^/]*\/[^/]*\/\//.test(url)) fail(`${page}: double slash in "${url}"`);
+    }
+
+    // Internal hrefs must resolve to a real file.
+    for (const m of html.matchAll(/(?:href|src)="([^"#][^"]*)"/g)) {
+      const ref = m[1];
+      if (/^(https?:|mailto:|data:|\/\/)/.test(ref)) continue;
+      const [path] = ref.split(/[?#]/);
+      if (!path) continue;
+      try {
+        // Resolve relative to the page's own directory, not the repo root:
+        // pages/*.html legitimately reference ../css/style.css.
+        await stat(join(dirname(join(root, page)), path));
+      } catch {
+        fail(`${page}: references missing file "${path}"`);
+      }
+    }
+  }
+  return pages.length;
+}
+
+async function validateRobotsAndSitemap() {
+  const robots = await readFile(join(root, "robots.txt"), "utf8");
+  if (/Sitemap:\s*http:\/\//i.test(robots)) fail("robots.txt advertises an http:// sitemap");
+  const m = /Sitemap:\s*(\S+)/i.exec(robots);
+  if (!m) fail("robots.txt has no Sitemap: directive");
+  else if (m[1].startsWith("http://")) fail(`robots.txt sitemap is http://: ${m[1]}`);
+
+  const sitemap = await readFile(join(root, "sitemap.xml"), "utf8");
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((x) => x[1]);
+  if (locs.some((u) => u.startsWith("http://"))) fail("sitemap.xml contains http:// URLs");
+  if (/t=/.test(sitemap)) fail("sitemap.xml contains the unread t= parameter");
+  if (/<lastmod>/.test(sitemap)) {
+    warn("sitemap.xml has <lastmod> values; these are stamped with the build date, not real per-page change times");
+  }
+  return locs.length;
+}
+
+async function main() {
+  console.log("Validating BoredPuP data and links…\n");
+  const { games, ids } = await validateCatalog();
+  const shard = await validateShards(ids);
+  const pages = await validateHtml();
+  const urls = await validateRobotsAndSitemap();
+
+  console.log(`  games          ${games.length}`);
+  console.log(`  categories     ${CANONICAL_CATEGORIES.length} canonical`);
+  console.log(`  detail shards  ${shard.shards} (${shard.entries} entries, skew ${shard.skew})`);
+  console.log(`  largest shard  ${shard.largest}`);
+  console.log(`  html pages     ${pages}`);
+  console.log(`  sitemap urls   ${urls}\n`);
+
+  if (warnings.length) {
+    console.log("Warnings:");
+    for (const w of warnings) console.log(`  ! ${w}`);
+    console.log("");
+  }
+
+  if (errors.length) {
+    console.error(`FAILED with ${errors.length} error(s):`);
+    for (const e of errors.slice(0, 40)) console.error(`  x ${e}`);
+    if (errors.length > 40) console.error(`  … and ${errors.length - 40} more`);
+    process.exit(1);
+  }
+  console.log("All checks passed ✓");
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

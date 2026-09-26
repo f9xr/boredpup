@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BoredPuP - Free Online Games, Play Instantly</title>
   <meta name="description" content="BoredPuP is home to thousands of free online games. Play instantly in your browser on PC, tablet, and mobile - no downloads, no interruptions.">
-<link rel="canonical" href="http://www.f9xr.org/boredpup//">
+<link rel="canonical" href="https://www.f9xr.org/boredpup/">
   <meta property="og:site_name" content="BoredPuP">
   <meta property="og:title" content="BoredPuP - Free Online Games">
   <meta property="og:description" content="Thousands of free online games, playable instantly on any device.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="http://www.f9xr.org/boredpup//">
-  <meta property="og:image" content="http://www.f9xr.org/boredpup//assets/og-image.png">
+  <meta property="og:url" content="https://www.f9xr.org/boredpup/">
+  <meta property="og:image" content="https://www.f9xr.org/boredpup/assets/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="BoredPuP - Free Online Games">
   <meta name="twitter:description" content="Thousands of free online games, playable instantly on any device.">
-  <meta name="twitter:image" content="http://www.f9xr.org/boredpup//assets/og-image.png">
+  <meta name="twitter:image" content="https://www.f9xr.org/boredpup/assets/og-image.png">
   <meta name="theme-color" content="#000000">
   <meta name="robots" content="index,follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
@@ -32,19 +32,19 @@
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "BoredPuP",
-    "url": "http://www.f9xr.org/boredpup//",
+    "url": "https://www.f9xr.org/boredpup/",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "http://www.f9xr.org/boredpup//search.html?q={search_term_string}",
+      "target": "https://www.f9xr.org/boredpup/search.html?q={search_term_string}",
       "query-input": "required name=search_term_string"
     },
     "publisher": {
       "@type": "Organization",
       "name": "BoredPuP",
-      "url": "http://www.f9xr.org/boredpup//",
+      "url": "https://www.f9xr.org/boredpup/",
 "logo": {
         "@type": "ImageObject",
-        "url": "http://www.f9xr.org/boredpup//assets/og-image.png",
+        "url": "https://www.f9xr.org/boredpup/assets/og-image.png",
         "width": 1200,
         "height": 630
       }
@@ -70,7 +70,7 @@
       <div class="nav-search">
         <form class="search" action="search.html" method="get" role="search">
           <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+          <input type="search" name="q" placeholder="Search thousands of games…" aria-label="Search games" id="searchInput">
         </form>
         <a class="btn btn-primary" href="#" data-action="random">Play now</a>
       </div>
@@ -93,7 +93,7 @@
       <div class="hero-inner">
         <div class="hero-kicker">
           <span class="status-dot" aria-hidden="true"></span>
-          <span class="badge-pill text-green">5,000+ games free to play</span>
+          <span class="badge-pill text-green"><span id="pillCount">5,600+</span> games free to play</span>
         </div>
         <h1 class="hero-title">Bored?<br>Play.</h1>
         <p class="hero-subtitle">
@@ -167,7 +167,7 @@
 
     <section class="band glow-section glow-blue stat-band">
       <div class="container">
-        <h2 class="display-xl">5,000+ free games.<br>Zero downloads.</h2>
+        <h2 class="display-xl"><span id="heroCount">5,600+</span> free games.<br>Zero downloads.</h2>
 <p class="subtitle text-muted mt-md">
           Classic favourites, daily puzzles, and brand-new hits - from Bubble Spinner
           and Mahjongg to Fruit Merge and Little Big Snake.
@@ -178,7 +178,7 @@
             <div class="stat-label">Free games</div>
           </div>
 <div class="stat">
-            <div class="stat-num" id="statCats">19</div>
+            <div class="stat-num" id="statCats">15</div>
             <div class="stat-label">Categories</div>
           </div>
           <div class="stat">

@@ -63,11 +63,22 @@ async function init() {
     const [games, cats] = await Promise.all([getAllGames(), getCategories()]);
     allGames = games;
 
+    const count = statCount(games.length);
     const statEl = document.getElementById("statGames");
-    if (statEl) statEl.textContent = statCount(games.length);
+    if (statEl) statEl.textContent = count;
 
     const statCats = document.getElementById("statCats");
     if (statCats) statCats.textContent = String(cats.length);
+
+    // These were hard-coded as "5,000+" in three places while the catalog held
+    // 5,621, so the marketing copy silently understated the library. Derive
+    // them from the data instead.
+    for (const id of ["heroCount", "pillCount"]) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = count;
+    }
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.placeholder = `Search ${count} games…`;
 
     renderCategoryCards(document.getElementById("categoryGrid"), cats, null);
     loadNewGrid();

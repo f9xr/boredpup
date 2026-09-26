@@ -1,11 +1,19 @@
 import { initNav, initFooter, renderCategoryPills, renderGameGrid, renderSkeleton, setCanonical, initPwa } from "./app.js";
+import { canonicalCategory } from "./categories.js";
 import { getAllGames, getCategories } from "./data.js";
 
 const PAGE_SIZE = 24;
 const PAGE_WINDOW = 2;
+/* The pager inserts this as a non-interactive gap. Comparing against "..."
+   (three ASCII dots) never matched the character actually being pushed, so
+   every gap rendered as a dead <a data-page="…"> whose parseInt() is NaN and
+   whose click handler bailed out. */
+const PAGE_GAP = "…";
 
 const params = new URLSearchParams(window.location.search);
-const category = params.get("c") || null;
+/* Resolve aliases so links like category.html?c=Puzzle still land on the right
+   page; updateUrl() rewrites the address bar to the canonical name. */
+const category = params.get("c") ? canonicalCategory(params.get("c")) : null;
 
 let allLoaded = [];
 let filtered = [];
@@ -54,16 +62,16 @@ function renderPager() {
   for (let i = clamp(page - PAGE_WINDOW); i <= clamp(page + PAGE_WINDOW); i++) pages.push(i);
   if (pages[0] > 1) {
     pages.unshift(1);
-    if (pages[0 + 1] > 2) pages.splice(1, 0, "…");
+    if (pages[1] > 2) pages.splice(1, 0, PAGE_GAP);
   }
   if (pages[pages.length - 1] < totalPages) {
-    if (pages[pages.length - 1] < totalPages - 1) pages.push("…");
+    if (pages[pages.length - 1] < totalPages - 1) pages.push(PAGE_GAP);
     pages.push(totalPages);
   }
 
   const item = (p, label = String(p), extra = "", disabled = false) => {
     if (disabled) return `<span class="page-btn page-btn-nav disabled" aria-disabled="true">${label}</span>`;
-    if (p === "...") return `<span class="page-gap" aria-hidden="true">${p}</span>`;
+    if (p === PAGE_GAP) return `<span class="page-gap" aria-hidden="true">${label}</span>`;
     const active = p === page ? " active" : "";
     return `<a class="page-btn${active}${extra}" href="${pageUrl(p)}" data-page="${p}"${active ? ' aria-current="page"' : ""}>${label}</a>`;
   };
@@ -160,12 +168,14 @@ async function init() {
   initFooter();
 
   const sortSelect = document.getElementById("sortSelect");
-  sortSelect.value = sortBy;
-  sortSelect.addEventListener("change", () => {
-    sortBy = sortSelect.value;
-    page = 1;
-    refreshGrid();
-  });
+  if (sortSelect) {
+    sortSelect.value = sortBy;
+    sortSelect.addEventListener("change", () => {
+      sortBy = sortSelect.value;
+      page = 1;
+      refreshGrid();
+    });
+  }
 
   bindPager();
 

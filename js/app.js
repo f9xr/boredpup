@@ -1,5 +1,12 @@
 /* BoredPuP - shared UI helpers. */
 
+import { isFav as isFavorite, toggleFavorite } from "./data.js";
+import { isAllowedProvider, safeEmbedUrl, providerOf } from "./embed.js";
+
+/* Re-exported so existing importers keep one import site, while the allowlist
+   itself lives in js/embed.js where the build can reach it too. */
+export { isAllowedProvider, safeEmbedUrl, providerOf };
+
 export function escapeHtml(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -9,76 +16,64 @@ export function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-export function isAllowedProvider(hostname, pathname) {
-  const host = String(hostname).toLowerCase();
-  if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return true;
-  if (host === "yupi.io" && /^\/embed\//i.test(pathname || "")) return true;
-  if (host === "html5.gamedistribution.com") return true;
-  return false;
-}
+/* Canonicalises the current URL before writing it into <link rel=canonical>.
+   This used window.location.href verbatim, so every arbitrary query string
+   became its own self-canonicalising page: ?id=1&t=A, ?id=1&t=B and
+   ?id=1&t=B&x=1 were three indexable URLs for a single game. Only parameters
+   this site actually reads are kept, and always in the same order, so the
+   canonical resolves to the one URL we want ranked. */
+const CANONICAL_PARAMS = {
+  "category.html": ["c", "page", "sort"],
+  "search.html": ["q", "page"],
+  "game.html": ["id"],
+};
 
-export function safeEmbedUrl(url) {
-  try {
-    const u = new URL(url);
-    if (u.protocol !== "https:") return null;
-    if (!isAllowedProvider(u.hostname, u.pathname)) return null;
-    return u.href;
-  } catch {
-    return null;
+export function canonicalUrl() {
+  const u = new URL(window.location.href);
+  u.hash = "";
+  u.protocol = "https:";
+  const allowed = CANONICAL_PARAMS[u.pathname.split("/").pop()] || [];
+  for (const key of [...u.searchParams.keys()]) {
+    if (!allowed.includes(key)) u.searchParams.delete(key);
   }
-}
-
-export function providerOf(url) {
-  try {
-    const u = new URL(url);
-    const host = u.hostname.toLowerCase();
-    if (/^(html5\.)?gamemonetize\.(co|com)$/i.test(host)) return "gamemonetize";
-    if (host === "yupi.io") return "yupi";
-    if (host === "html5.gamedistribution.com") return "gamedistribution";
-  } catch {
-    /* ignore */
+  const sorted = new URLSearchParams();
+  for (const key of allowed) {
+    const v = u.searchParams.get(key);
+    if (v != null && v !== "") sorted.set(key, v);
   }
-  return null;
+  u.search = sorted.toString();
+  return u.href;
 }
 
 export function setCanonical() {
+  const href = canonicalUrl();
   const existing = document.querySelector('link[rel="canonical"]');
-  const url = window.location.href.split("#")[0];
-  if (existing) existing.setAttribute("href", url);
+  if (existing) existing.setAttribute("href", href);
   else {
     const link = document.createElement("link");
     link.rel = "canonical";
-    link.href = url;
+    link.href = href;
     document.head.appendChild(link);
   }
 }
 
+/* Favorites live in js/data.js. These were previously a second, independent
+   implementation here against a hard-coded copy of the storage key, so the two
+   could disagree about a key that is persisted in real users' browsers. */
 export function isFav(id) {
-  try {
-    const favs = JSON.parse(localStorage.getItem("boredpup:favs:v1") || "[]");
-    return Array.isArray(favs) && favs.includes(String(id));
-  } catch {
-    return false;
-  }
+  return isFavorite(id);
 }
 
 export function toggleFav(id, btn) {
-  const faved = isFav(id);
-  try {
-    const favs = JSON.parse(localStorage.getItem("boredpup:favs:v1") || "[]");
-    const set = new Set(Array.isArray(favs) ? favs : []);
-    if (faved) set.delete(String(id));
-    else set.add(String(id));
-    localStorage.setItem("boredpup:favs:v1", JSON.stringify([...set]));
-  } catch {
-    /* ignore */
-  }
+  const nowFaved = toggleFavorite(id);
   if (btn) {
-    btn.classList.toggle("active", !faved);
-    btn.setAttribute("aria-pressed", String(!faved));
-    btn.setAttribute("aria-label", !faved ? `Remove ${id} from favorites` : `Add to favorites`);
+    btn.classList.toggle("active", nowFaved);
+    btn.setAttribute("aria-pressed", String(nowFaved));
+    // Stable accessible name: toggling must not change what the control is
+    // called out loud, and the id does not belong in it.
+    btn.setAttribute("aria-label", "Favorite");
   }
-  return !faved;
+  return nowFaved;
 }
 
 export function gameCard(g) {
@@ -87,7 +82,7 @@ export function gameCard(g) {
   const category = g[2];
   const tags = Array.isArray(g[3]) && g[3].length ? g[3] : [];
   const thumb = g[4];
-  const href = `game.html?id=${encodeURIComponent(id)}&t=${encodeURIComponent(title)}`;
+  const href = `game.html?id=${encodeURIComponent(id)}`;
   const faved = isFav(id);
 
   const tagBadge =
@@ -103,7 +98,7 @@ export function gameCard(g) {
       </div>
     </a>
     <button class="fav-btn${faved ? " active" : ""}" type="button" data-id="${escapeHtml(id)}"
-            aria-pressed="${faved}" aria-label="${faved ? "Remove from favorites" : "Add to favorites"}"
+            aria-pressed="${faved}" aria-label="Favorite" aria-describedby="none"
             title="${faved ? "Saved" : "Save to favorites"}"><span>${faved ? "♥" : "♡"}</span></button>
     <a class="game-body" href="${href}" tabindex="-1">
       <div class="game-title">${escapeHtml(title)}</div>
@@ -179,6 +174,10 @@ const CATEGORY_ICONS = {
     '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   Bejeweled:
     '<path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
+  "Match-3":
+    '<circle cx="6" cy="6" r="2.5"/><circle cx="12" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="12" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/>',
+  Cards:
+    '<rect x="3" y="5" width="14" height="16" rx="2"/><path d="M7 9h6"/><path d="M21 8v11a2 2 0 0 1-2 2H9"/>',
 };
 
 const CATEGORY_ACCENTS = ["orange", "blue", "green", "red", "yellow"];

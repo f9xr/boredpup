@@ -6,29 +6,18 @@
    Catalog rows:  [id, title, category, tags, thumb]
    Detail entry:  { description, instructions, url, width, height }  */
 
+import { shardOf } from "./shard.js";
+
 export const FEED_URL =
   "https://rss.gamemonetize.com/rssfeed.php?format=json&category=All&type=html5&popularity=newest&company=All&amount=All";
 
-const DETAIL_SHARDS = 32;
-const LOCAL_KEY = "boredpup:catalog:v2";
+const LOCAL_KEY = "boredpup:catalog:v3";
 export const RECENT_KEY = "boredpup:recent:v1";
 export const FAVS_KEY = "boredpup:favs:v1";
 const DETAILS_CACHE_MAX = 200;
+const CATALOG_MAX_AGE = 6 * 60 * 60 * 1000;
 
 let liveFull = [];
-
-function hashString(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h << 5) - h + str.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
-
-function shardOf(id) {
-  return hashString(id) % DETAIL_SHARDS;
-}
 
 function decodeEntities(str) {
   return String(str ?? "")

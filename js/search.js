@@ -3,6 +3,9 @@ import { getAllGames, searchGames } from "./data.js";
 
 const PAGE_SIZE = 24;
 const PAGE_WINDOW = 2;
+/* See the note in category.js: the gap character is U+2026, so comparing it
+   against "..." never matched. */
+const PAGE_GAP = "…";
 const params = new URLSearchParams(window.location.search);
 const query = (params.get("q") || "").trim();
 
@@ -52,16 +55,16 @@ function renderPager() {
   for (let i = clamp(page - PAGE_WINDOW); i <= clamp(page + PAGE_WINDOW); i++) pages.push(i);
   if (pages[0] > 1) {
     pages.unshift(1);
-    if (pages[1] > 2) pages.splice(1, 0, "…");
+    if (pages[1] > 2) pages.splice(1, 0, PAGE_GAP);
   }
   if (pages[pages.length - 1] < totalPages) {
-    if (pages[pages.length - 1] < totalPages - 1) pages.push("…");
+    if (pages[pages.length - 1] < totalPages - 1) pages.push(PAGE_GAP);
     pages.push(totalPages);
   }
 
   const item = (p, label = String(p), extra = "", disabled = false) => {
     if (disabled) return `<span class="page-btn page-btn-nav disabled" aria-disabled="true">${label}</span>`;
-    if (p === "...") return `<span class="page-gap" aria-hidden="true">${p}</span>`;
+    if (p === PAGE_GAP) return `<span class="page-gap" aria-hidden="true">${label}</span>`;
     const active = p === page ? " active" : "";
     return `<a class="page-btn${active}${extra}" href="${pageUrl(p)}" data-page="${p}"${active ? ' aria-current="page"' : ""}>${label}</a>`;
   };
