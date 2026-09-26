@@ -1,12 +1,37 @@
+# ads.txt - IAB sellers.json-style authorized seller declarations for
+# https://www.f9xr.org/boredpup/
+#
+# Owner action required before relying on this file. The declarations below are
+# UNCHANGED from the previous version - only the comments are new - because a
+# publisher ID is a claim about ad-account ownership that cannot be verified
+# from the source tree. Confirm each of these with your ad account manager:
+#
+#   1. That every pub-* ID below is authorized to serve on this domain, and
+#      that we are entitled to declare each one DIRECT rather than RESELLER.
+#   2. In particular, the two IDs previously filed under a "#GameMonetize.com"
+#      heading. They are google.com records, so declaring them DIRECT asserts
+#      that the inventory is ours. If they are actually GameMonetize's or a
+#      partner's publisher IDs, they must be listed as RESELLER (or removed
+#      here and declared in that partner's own ads.txt) - a DIRECT claim over
+#      someone else's inventory is the kind of thing that gets a domain
+#      suspended. This was not silently changed, because the fix depends on
+#      which account actually owns the ID.
+#   3. That the certification string below is this site's own seller ID.
+#
+# `npm run validate` checks this file for malformed records and duplicate
+# publisher IDs. It cannot check ownership.
+
+# --- Our own inventory, sold directly through Google Ad Manager ---
+# certified seller id: f08c47fec0942fa0
 google.com, pub-9769892721842144, DIRECT, f08c47fec0942fa0
 
-#GameMonetize.com
+# --- Google Ad Manager IDs previously filed under a GameMonetize heading ---
+# Unverified: see note 2 above. Left exactly as they were.
 google.com, pub-5519830896693885, DIRECT, f08c47fec0942fa0
 google.com, pub-4764333688337558, DIRECT, f08c47fec0942fa0
 
-# WGPlayground ADX
+# --- WGPlayground ADX: sold through us as a reseller ---
 google.com, pub-9427048641572074, RESELLER, f08c47fec0942fa0
 google.com, pub-7248593568933467, RESELLER, f08c47fec0942fa0
 google.com, pub-4529402052683454, RESELLER, f08c47fec0942fa0
 wgplayer.com, WGP5265933821, DIRECT
-

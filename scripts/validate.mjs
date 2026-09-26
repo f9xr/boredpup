@@ -205,11 +205,57 @@ async function validateRobotsAndSitemap() {
   return locs.length;
 }
 
+/* ads.txt is a declaration of ad-account ownership. A malformed or duplicated
+   record gets inventory withheld, and a record that contradicts another is
+   worse than a missing one. What we can check mechanically is the shape and
+   the uniqueness; ownership itself is unverifiable from the source tree. */
+async function validateAdsTxt() {
+  const text = await readFile(join(root, "ads.txt"), "utf8");
+  const seen = new Map();
+  let records = 0;
+
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+    records++;
+
+    const parts = line.split(",").map((p) => p.trim());
+    if (parts.length < 3 || parts.length > 4) {
+      fail(`ads.txt record has ${parts.length} fields, expected 3 or 4: ${line}`);
+      continue;
+    }
+    const [exchange, publisher, relationship, cert] = parts;
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(exchange)) {
+      fail(`ads.txt exchange is not a domain: ${line}`);
+    }
+    if (relationship !== "DIRECT" && relationship !== "RESELLER") {
+      fail(`ads.txt relationship must be DIRECT or RESELLER, got "${relationship}": ${line}`);
+    }
+    // A RESELLER line should carry the reselling party, not our own seller ID.
+    if (relationship === "RESELLER" && cert) {
+      const key = `${exchange}|${publisher}|${cert}`;
+      if (seen.has(key)) {
+        fail(`ads.txt duplicate record for ${publisher} on ${exchange} (${relationship})`);
+      }
+      seen.set(key, true);
+    }
+    const key = `${exchange}|${publisher}`;
+    if (seen.has(`DUP:${key}`)) {
+      fail(`ads.txt publisher ${publisher} is declared twice on ${exchange}; the second declaration is ignored by some exchanges`);
+    }
+    seen.set(`DUP:${key}`, true);
+  }
+
+  if (!records) fail("ads.txt declares no records");
+  return records;
+}
+
 async function main() {
   console.log("Validating BoredPuP data and links…\n");
   const { games, ids } = await validateCatalog();
   const shard = await validateShards(ids);
   const pages = await validateHtml();
+  const ads = await validateAdsTxt();
   const urls = await validateRobotsAndSitemap();
 
   console.log(`  games          ${games.length}`);
@@ -217,6 +263,7 @@ async function main() {
   console.log(`  detail shards  ${shard.shards} (${shard.entries} entries, skew ${shard.skew})`);
   console.log(`  largest shard  ${shard.largest}`);
   console.log(`  html pages     ${pages}`);
+  console.log(`  ads.txt        ${ads} records`);
   console.log(`  sitemap urls   ${urls}\n`);
 
   if (warnings.length) {
