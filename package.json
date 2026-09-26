@@ -14,7 +14,8 @@
     "sync:csp": "node scripts/inject-csp.mjs",
     "sync": "node scripts/sync-base-url.mjs && node scripts/inject-csp.mjs",
     "validate": "node scripts/validate.mjs",
-    "test": "node scripts/validate.mjs",
+    "test:data": "node scripts/test-data.mjs",
+    "test": "node scripts/validate.mjs && node scripts/test-data.mjs",
     "serve": "node scripts/serve.mjs . 8080"
   },
   "engines": {
