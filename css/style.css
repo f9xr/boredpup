@@ -1879,6 +1879,19 @@ select {
   width: auto;
 }
 
+.marquee-text {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 var(--space-lg);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-full);
+  background: var(--surface-elevated);
+  color: var(--ink);
+  font: var(--text-caption);
+  white-space: nowrap;
+}
+
 .marquee-row.left .marquee-track {
   animation: marquee-left 36s linear infinite;
 }
