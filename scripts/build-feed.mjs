@@ -271,7 +271,10 @@ async function writeSitemap(catalog, categories) {
     urls.push(`/category.html?c=${encodeURIComponent(c.name)}`);
   }
   for (const g of catalog) {
-    urls.push(`/game.html?id=${encodeURIComponent(g[0])}`);
+    // The prerendered page is the canonical URL for each game; game.html?id= is
+  // kept working for existing links but points its canonical here too, so the
+  // shell never becomes a second indexable URL for the same game.
+  urls.push(`/g/${encodeURIComponent(g[0])}.html`);
   }
 
   // No <lastmod>. The previous build stamped every one of the 5,671 URLs with

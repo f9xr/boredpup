@@ -250,6 +250,39 @@ async function validateAdsTxt() {
   return records;
 }
 
+/* The prerendered game pages are the URLs the sitemap advertises, so a missing
+   or stale one is an indexable 404. Checking 5,621 files has to stay cheap, so
+   this verifies existence, a real title, and the canonical/game.js contract
+   rather than doing a full parse of each. */
+async function validateGamePages(ids) {
+  const dir = join(root, "g");
+  let checked = 0;
+  const missing = [];
+
+  for (const id of ids) {
+    const name = /^[A-Za-z0-9._-]{1,64}$/.test(id) ? `${id}.html` : null;
+    if (!name) {
+      // Not filename-safe, so it is served through game.html?id= by design.
+      continue;
+    }
+    const html = await readFile(join(dir, name), "utf8").catch(() => null);
+    if (html === null) {
+      missing.push(`g/${name} (absent)`);
+    } else if (!/<title>[^<]+<\/title>/.test(html)) {
+      missing.push(`g/${name} (no title)`);
+    } else if (!html.includes('<base href="../">')) {
+      missing.push(`g/${name} (missing <base>, relative assets would break)`);
+    }
+    checked++;
+  }
+
+  if (missing.length) {
+    fail(`${missing.length} prerendered game page(s) missing or malformed; run npm run build:pages`);
+    for (const m of missing.slice(0, 10)) fail(`  ${m}`);
+  }
+  return checked;
+}
+
 async function main() {
   console.log("Validating BoredPuP data and links…\n");
   const { games, ids } = await validateCatalog();
@@ -257,12 +290,14 @@ async function main() {
   const pages = await validateHtml();
   const ads = await validateAdsTxt();
   const urls = await validateRobotsAndSitemap();
+  const gamePages = await validateGamePages(ids);
 
   console.log(`  games          ${games.length}`);
   console.log(`  categories     ${CANONICAL_CATEGORIES.length} canonical`);
   console.log(`  detail shards  ${shard.shards} (${shard.entries} entries, skew ${shard.skew})`);
   console.log(`  largest shard  ${shard.largest}`);
   console.log(`  html pages     ${pages}`);
+  console.log(`  game pages     ${gamePages} prerendered`);
   console.log(`  ads.txt        ${ads} records`);
   console.log(`  sitemap urls   ${urls}\n`);
 

@@ -118,6 +118,18 @@ async function handleNavigate(req) {
   } catch {
     const cached = await caches.match(req, { cacheName: CACHE });
     if (cached) return cached;
+
+    // A prerendered game page (g/<id>.html) has no cached copy of its own
+    // offline - 5,621 of them are not precached. game.js reads the id out of the
+    // path, so the cached shell hydrates the same game. Its <base href="../">
+    // is not present in the shell, so the relative asset URLs resolve from the
+    // root, which is where they live.
+    const path = new URL(req.url).pathname;
+    if (/\/g\/[^/]+\.html$/.test(path)) {
+      const shell = await caches.match("./game.html", { cacheName: CACHE });
+      if (shell) return shell;
+    }
+
     const fallback =
       (await caches.match("./404.html", { cacheName: CACHE })) ||
       (await caches.match("./index.html", { cacheName: CACHE }));

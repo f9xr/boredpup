@@ -45,6 +45,18 @@ export function canonicalUrl() {
   return u.href;
 }
 
+/* Canonical URL for a game page.
+
+   Each game has a prerendered static page at g/<id>.html carrying its real
+   title, description and social image, because social crawlers do not run
+   JavaScript and a query-string shell unfurls as the generic site card.
+
+   The path is relative, which resolves correctly from every page: the root
+   pages have no <base>, and the g/ pages carry <base href="../">. */
+export function gameHref(id) {
+  return `g/${encodeURIComponent(id)}.html`;
+}
+
 export function setCanonical() {
   const href = canonicalUrl();
   const existing = document.querySelector('link[rel="canonical"]');
@@ -82,7 +94,7 @@ export function gameCard(g) {
   const category = g[2];
   const tags = Array.isArray(g[3]) && g[3].length ? g[3] : [];
   const thumb = g[4];
-  const href = `game.html?id=${encodeURIComponent(id)}`;
+  const href = gameHref(id);
   const faved = isFav(id);
 
   const tagBadge =
@@ -274,7 +286,7 @@ export async function initFooter() {
       try {
         const { randomGame } = await import("./data.js");
         const g = await randomGame();
-        if (g) window.location.href = `game.html?id=${encodeURIComponent(g[0])}`;
+        if (g) window.location.href = gameHref(g[0]);
       } catch {
         /* ignore */
       }

@@ -1,8 +1,17 @@
-import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa, safeEmbedUrl, providerOf } from "./app.js";
+import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa, safeEmbedUrl, providerOf, gameHref } from "./app.js";
 import { getGame, getDetails, getAllGames, markRecent } from "./data.js";
 
-const params = new URLSearchParams(window.location.search);
-const gameId = params.get("id");
+/* Games are reachable two ways: the prerendered g/<id>.html page that crawlers
+   and social unfurlers see, and the legacy game.html?id=<id> shell for links
+   that already exist. Both must render the same game. */
+function resolveGameId() {
+  const q = new URLSearchParams(window.location.search).get("id");
+  if (q) return q;
+  const m = /\/g\/([^/]+)\.html$/.exec(window.location.pathname);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+const gameId = resolveGameId();
 
 const playerFrame = document.getElementById("playerFrame");
 const iframeSlot = document.getElementById("iframeSlot");
@@ -210,6 +219,17 @@ function setMeta(selector, content) {
   if (el) el.setAttribute("content", content);
 }
 
+/* Both URL forms point at the prerendered page as canonical, so the query
+   string shell never becomes a second indexable URL for the same game.
+   Relative against document.baseURI, which the g/ pages set to "../" via
+   <base href="../">, so this resolves to the same absolute URL either way. */
+function setGameCanonical() {
+  const u = new URL(gameHref(gameId), document.baseURI);
+  u.protocol = "https:";
+  const link = document.querySelector('link[rel="canonical"]');
+  if (link) link.setAttribute("href", u.href);
+}
+
 async function render() {
   const crumbs = document.querySelector(".crumbs");
 
@@ -262,6 +282,7 @@ async function render() {
   setMeta("#twImageH", "384");
   document.title = `${title} - Play Free Online on BoredPuP`;
   setCanonical();
+  setGameCanonical();
 
   crumbs.innerHTML = `
     <a href="index.html">Home</a>

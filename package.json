@@ -9,13 +9,15 @@
     "build:feed:offline": "node scripts/build-feed.mjs --offline",
     "build:yupi": "node scripts/build-yupi.mjs",
     "build:gd": "node scripts/build-gd.mjs",
-    "build:all": "node scripts/build-yupi.mjs && node scripts/build-gd.mjs && node scripts/build-feed.mjs",
+    "build:pages": "node scripts/build-game-pages.mjs",
+    "build:pages:check": "node scripts/build-game-pages.mjs --check",
+    "build:all": "node scripts/build-yupi.mjs && node scripts/build-gd.mjs && node scripts/build-feed.mjs && node scripts/build-game-pages.mjs",
     "sync:base": "node scripts/sync-base-url.mjs",
     "sync:csp": "node scripts/inject-csp.mjs",
     "sync": "node scripts/sync-base-url.mjs && node scripts/inject-csp.mjs",
     "validate": "node scripts/validate.mjs",
     "test:data": "node scripts/test-data.mjs",
-    "test": "node scripts/validate.mjs && node scripts/test-data.mjs",
+    "test": "node scripts/validate.mjs && node scripts/build-game-pages.mjs --check && node scripts/test-data.mjs",
     "serve": "node scripts/serve.mjs . 8080"
   },
   "engines": {

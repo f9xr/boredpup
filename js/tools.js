@@ -1,4 +1,4 @@
-import { initNav, initFooter, setCanonical, initPwa, escapeHtml, safeEmbedUrl, providerOf } from "./app.js";
+import { initNav, initFooter, setCanonical, initPwa, escapeHtml, safeEmbedUrl, providerOf, gameHref } from "./app.js";
 import { getAllGames, getCategories, getDetails, getMeta, randomGame } from "./data.js";
 
 const gamesById = new Map();
@@ -86,7 +86,7 @@ async function showGameTools(g) {
   const w = details ? details.width : 800;
   const h = details ? details.height : 600;
   const embedUrl = url || "https://html5.gamemonetize.co/";
-  const playHref = `game.html?id=${encodeURIComponent(id)}`;
+  const playHref = gameHref(id);
   const provider = url ? providerOf(url) : null;
 
   document.getElementById("toolTitle").textContent = title;
@@ -178,7 +178,7 @@ async function bindRandom() {
     const g = await randomGame();
     if (!g) return;
     const host = document.getElementById("randOut");
-    const href = `game.html?id=${encodeURIComponent(g[0])}`;
+    const href = gameHref(g[0]);
     const thumb = `<img src="${escapeHtml(g[4])}" alt="${escapeHtml(g[1])}" width="256" height="192" style="border-radius: var(--radius-lg); border: 1px solid var(--hairline); max-width: 100%; height: auto;">`;
     host.innerHTML = `
       <a href="${href}" class="inline-link" style="font-size: 1.15rem;">Featured: ${escapeHtml(g[1])} →</a>
