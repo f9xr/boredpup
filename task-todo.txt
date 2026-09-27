@@ -1,0 +1,196 @@
+BoredPuP - leftover tasks
+=========================
+
+Findings from the audit that are still open, plus follow-ups created by the
+fixes that have landed. Ordered roughly by value, not by effort.
+
+Status key: [ ] open  [~] partly done  [x] done
+Original finding IDs (C=critical, M=medium, L=low) are kept so these can be
+traced back to the audit report.
+
+
+--------------------------------------------------------------------
+DECISIONS NEEDED FROM THE OWNER
+--------------------------------------------------------------------
+
+[ ] ads.txt publisher IDs need confirming against the ad accounts
+    Two google.com records were filed under a "#GameMonetize.com" heading,
+    which asserts the inventory is ours. If they are actually GameMonetize's
+    or a partner's IDs, they must become RESELLER or be removed - a DIRECT
+    claim over someone else's inventory is how domains get suspended. Left
+    unchanged on purpose; see the comments in ads.txt.
+
+[ ] 48MB of prerendered game pages - keep, or prerender a subset?
+    g/ holds 5,621 files at 8.7KB. I estimated 17-40MB before writing the
+    generator and it came in at 48MB. Options:
+      - keep all 5,621 (best coverage, 48MB, ~5,600 files rewritten per
+        nightly refresh)
+      - prerender only the top N by popularity (much smaller repo, only
+        shared popular links get real cards)
+      - generate them in CI and deploy without committing (keeps the repo
+        small, but then a fresh clone has no pages and the validator fails)
+    scripts/build-game-pages.mjs supports the first two; the third only needs
+    the commit step removed from the workflow.
+
+[ ] Decide whether the generated pages belong in git at all
+    Same tradeoff as above. 5,621 files make every git operation and diff
+    review noticeably slower.
+
+
+--------------------------------------------------------------------
+CRITICAL
+--------------------------------------------------------------------
+
+[x] C1 stale catalog pinned at install time (service worker half) - 099d679
+[x] C1 localStorage snapshot trusted blindly, and re-stamped as fresh - 320ca97
+[x] C2 uneven detail shards (216KB worst case)
+[x] C3 all detail shards fetched on first paint
+[x] C6 ads.txt records mislabelled - 4e08a27 (see the owner decision above)
+[x] C7 privacy policy made claims nothing implemented - 4e08a27
+[x] C8 no social/no-JS metadata for game pages - 8ad9710, b23b6ac
+
+
+--------------------------------------------------------------------
+MEDIUM
+--------------------------------------------------------------------
+
+[ ] M7 tools page: ARIA tabs are not wired to their panels
+    The tab strip has the visual and the roles but no id/aria-controls link
+    between a tab and its panel, so a screen reader announces a tablist with
+    nothing selected. Also check the arrow-key/Home/End behaviour.
+
+[ ] M12 CI does not validate anything
+    .github/workflows/refresh-feed.yml currently just runs the build. Needs:
+      - `npm test` (validate + prerender check + data tests) as a gate, so a
+        bad nightly cannot land silently
+      - action versions pinned to commit SHAs rather than mutable tags
+      - a timeout-minutes on the job
+      - failure notification (the workflow has no notify step today)
+      - `sync` (base URL + CSP) run before the build so a deploy cannot ship
+        a page the others disagree with
+      - `build:pages` wired in after `build:feed`
+
+[ ] M13 provider scripts can hang and are not deterministic
+    scripts/build-yupi.mjs and scripts/build-gd.mjs still have no request
+    timeout (build-feed.mjs got one) and no stable sort, so a slow response
+    or a reordered upstream page produces a noisy diff on every run.
+    Also: yupi still writes its own cache file that .gitignore does not cover.
+
+[ ] M14 catalog perf, partly done
+    Done: id->row Map for getGame, precomputed search haystacks, memoized
+    favorites, single-pass related-games.
+    Left: the 998KB catalog.json is still parsed on first paint of every page.
+    Consider splitting it, or shipping a smaller first-load subset and
+    fetching the rest lazily.
+
+[ ] M6 remaining: the badge marquee still loads 7 external images per visit
+    The privacy half is done (no-referrer, lazy, disclosed in the policy).
+    Left: no visible fallback if a badge host is down or blocked, and the two
+    duplicate rows are both fetched. Consider IntersectionObserver so the
+    badges are not requested until actually near the viewport.
+
+[ ] M10/M11 follow-ups after the service worker rework
+    - navigation preload is still not used, so first navigation waits for the SW
+    - there is no "new version available, reload?" prompt; a v5 install is
+      silent until the next full reload
+    - cache versioning is a manual constant; there is no build stamp
+
+[ ] M4 remaining: clickjacking protection is unavailable on a static host
+    frame-ancestors and report-uri are ignored in a meta-delivered CSP (that
+    is spec, not a bug in scripts/csp.mjs). If the host ever supports headers,
+    move the policy out of the meta tag and add frame-ancestors 'none' plus a
+    report-uri. Worth re-checking whenever hosting changes.
+
+
+--------------------------------------------------------------------
+LOW
+--------------------------------------------------------------------
+
+[ ] L1 unguarded DOM lookups outside game.html
+    game.js got setMeta(); js/mygames.js still does
+    document.getElementById(...).something with no null check, so a missing
+    node is a hard TypeError instead of a degraded page.
+
+[ ] L4 keyboard shortcuts
+    game.js fixed (no Ctrl/Cmd/Alt, no stealing from text fields). The same
+    issue may exist in other key handlers; check tools.js and search.js.
+
+[ ] L5 related games should also match tags, not only category
+    "Hand-picked from the same family" is only true by category. Tags are
+    already loaded in the row.
+
+[ ] L6 paint/CLS polish
+    - no skeleton for the related-games grid on first paint
+    - font-display is not set on the Google Fonts request
+    - badge row has no reserved height before the images arrive
+
+[ ] L7 duplicate titles in the tools page
+    The tool cards sort by name but the duplicated entries are not labelled.
+
+[ ] L8 heading hierarchy on the sub pages
+    pages/*.html jump levels; check that each page has exactly one h1 and no
+    skipped levels.
+
+[ ] L9 og:type and image dimensions
+    game pages are done (L9 half). The static pages still ship
+    og:type=website with a 1200x630 default image and no og:image:alt.
+
+[ ] L10 no breadcrumb structured data
+    game.html has visible breadcrumbs but no BreadcrumbList JSON-LD, so rich
+    results never appear. The prerendered pages have real breadcrumbs in the
+    markup already, so this is now easy.
+
+[ ] L11 backdrop-filter blur cost on low-end devices
+    Several blurred layers over an animated background. Add a
+    prefers-reduced-transparency / coarse-pointer fallback.
+
+[ ] L12 .kilo/ is committed
+    Look at what is in it and decide: keep with a README, or remove.
+
+[ ] L13 all-urls.txt is stale, duplicated, and has a BOM
+    It still lists 5,671 URLs from the old 42-category taxonomy and is not
+    regenerated by the build. Either generate it from the catalog or delete
+    it - nothing references it.
+
+[ ] L14 sub pages do not initialise PWA behaviour
+    js/pages.js only wires the footer, so the nav search and the offline
+    behaviour differ between the root pages and pages/*.html.
+
+[ ] L19 mobile drawer focus management
+    The burger toggles a class but does not move focus into the drawer, trap
+    it, or restore focus on close, and Escape does not close it.
+
+[ ] L20 repository hygiene
+    - no .gitattributes: git is warning about LF/CRLF on nearly every file
+      touched, and generated pages would be affected too
+    - no linter or formatter, despite the existing scripts/validate.mjs
+    - no editorconfig
+    - package.json declares no devDependencies at all
+    - todo.txt is committed and now stale
+
+[ ] L18 docs are behind the code
+    README.md and DESIGN.md do not mention: the 15-category taxonomy, the
+    CSP, the prerendered g/ pages, the service worker cache layout, or the
+    build:pages step. Any of the above is invisible to the next person.
+
+
+--------------------------------------------------------------------
+VERIFICATION NOT YET DONE
+--------------------------------------------------------------------
+These need a real browser or a real network, so they are not in `npm test`.
+
+[ ] Serve the site and click through: game page, category, search, tools,
+    favorites, my-games, 404. The g/ pages are new and only the DOM contract
+    with js/game.js was verified programmatically.
+[ ] Confirm the prerendered pages hydrate: title, player iframe, related grid,
+    walkthrough iframe, share button.
+[ ] Check a real social unfurl (paste a g/<id>.html link into Slack, Discord
+    and X) - this was the entire point of C8 and is still unverified.
+[ ] Offline: load a game page, go offline, reload it, and confirm the cached
+    shell hydrates the game via the sw.js fallback.
+[ ] Run the live providers once (npm run build:all). Every rebuild so far has
+    been --offline, so the yupi/gd/network paths are untested end to end.
+[ ] Lighthouse on index.html and one g/<id>.html.
+[ ] Screen-reader pass on the tools tablist and the mobile drawer.
+[ ] Mobile viewport pass: the prerendered page has a different, smaller
+    footer and no search box in the nav - confirm that is acceptable.
