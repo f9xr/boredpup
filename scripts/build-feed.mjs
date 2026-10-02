@@ -1,3 +1,24 @@
+/* BoredPuP - build data/catalog.json, the detail shards, data/mobile.json and
+   sitemap.xml from the GameMonetize feeds plus the secondary provider caches.
+
+   Two feeds are read. The html5 one is the catalog spine; the mobile one is the
+   same provider with type=mobile and contributes the games html5 does not carry.
+   They are not disjoint - 3,925 of the mobile feed's 5,001 ids are also in the
+   html5 feed - so "mobile" is recorded as a set difference rather than as a
+   flag on the catalog row. The catalog row is a 5-tuple that validate.mjs
+   enforces and three providers write; growing it to carry a platform would have
+   meant touching all of them to say what a sidecar file says once.
+
+   The build is additive, not authoritative. A game that has left every feed
+   stays in the catalog with the row and detail it was last seen with, because
+   the alternative is that a provider quietly deleting one title 404s a page
+   that has been in the sitemap and in people's bookmarks since it launched.
+   The cost is that the catalog only grows and a withdrawn game keeps a stale
+   description; that is the cheaper of the two failures.
+
+     node scripts/build-feed.mjs             # fetch and rebuild
+     node scripts/build-feed.mjs --offline   # rebuild from the committed snapshot */
+
 import { mkdir, readdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -5,12 +26,16 @@ import { canonicalCategory } from "../js/categories.js";
 import { isAllowedEmbedUrl } from "../js/embed.js";
 import { DETAIL_SHARDS, shardOf } from "../js/shard.js";
 
+const feedUrl = (type) =>
+  `https://rss.gamemonetize.com/rssfeed.php?format=json&category=All&type=${type}&popularity=newest&company=All&amount=All`;
+
 const FALLBACK = {
-  ARCHIVE_URL:
-    "https://rss.gamemonetize.com/rssfeed.php?format=json&category=All&type=html5&popularity=newest&company=All&amount=All",
+  ARCHIVE_URL: feedUrl("html5"),
+  MOBILE_URL: feedUrl("mobile"),
 };
 
 const FEED_URL = process.env.BOREDPUP_FEED_URL || FALLBACK.ARCHIVE_URL;
+const MOBILE_FEED_URL = process.env.BOREDPUP_MOBILE_FEED_URL || FALLBACK.MOBILE_URL;
 const FETCH_TIMEOUT_MS = 30000;
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDir = join(root, "data");
@@ -92,19 +117,58 @@ async function loadOfflineFeed() {
     .filter(Boolean);
 }
 
+/* The catalog as it stands on disk, so the additive build can carry forward
+   every game the feeds no longer return. Read before the feeds so a feed row
+   always wins over the preserved copy of the same id. */
+async function loadPreserved() {
+  const rows = new Map();
+  const details = new Map();
+  let catalog;
+  try {
+    catalog = JSON.parse(await readFile(join(dataDir, "catalog.json"), "utf8"));
+  } catch {
+    return { rows, details };
+  }
+  for (const row of catalog.games || []) {
+    if (Array.isArray(row) && row[0]) rows.set(String(row[0]), row);
+  }
+  for (const file of (await readdir(dataDir)).filter((f) => /^details-\d+/.test(f))) {
+    const shard = JSON.parse(await readFile(join(dataDir, file), "utf8"));
+    for (const [id, entry] of Object.entries(shard)) details.set(id, entry);
+  }
+  return { rows, details };
+}
+
 async function main() {
+  const preserved = await loadPreserved();
+
+  const primaryIds = new Set();
+  const mobileIds = new Set();
   let games;
+
   if (OFFLINE) {
     games = await loadOfflineFeed();
+    // No live feed means no mobile list to recompute. Rewriting it as empty
+    // would wipe a page that is otherwise perfectly serviceable, so the
+    // committed data/mobile.json is left alone.
   } else {
-    console.log(`Fetching feed from ${FEED_URL}…`);
-    const res = await fetchWithTimeout(FEED_URL);
-    if (!res.ok) throw new Error(`Feed request failed: ${res.status} ${res.statusText}`);
-    games = await res.json();
+    console.log(`Fetching ${FEED_URL}`);
+    console.log(`Fetching ${MOBILE_FEED_URL}`);
+    const [primary, mobile] = await Promise.all([fetchWithTimeout(FEED_URL), fetchWithTimeout(MOBILE_FEED_URL)]);
+    if (!primary.ok) throw new Error(`Feed request failed: ${primary.status} ${primary.statusText}`);
+    if (!mobile.ok) throw new Error(`Mobile feed request failed: ${mobile.status} ${mobile.statusText}`);
+    const [primaryGames, mobileGames] = await Promise.all([primary.json(), mobile.json()]);
+    if (!Array.isArray(primaryGames)) throw new Error("Unexpected feed shape");
+    if (!Array.isArray(mobileGames)) throw new Error("Unexpected mobile feed shape");
+    for (const g of primaryGames) primaryIds.add(String(g.id ?? "").trim());
+    for (const g of mobileGames) mobileIds.add(String(g.id ?? "").trim());
+    // Concatenated rather than merged row by row: the loop below de-dupes by id
+    // and keeps the first occurrence, so the html5 feed's version of a game
+    // wins over the mobile feed's copy of the same id.
+    games = [...primaryGames, ...mobileGames];
   }
-  if (!Array.isArray(games)) throw new Error("Unexpected feed shape");
 
-  console.log(`Feed returned ${games.length} games`);
+  console.log(`Feed returned ${games.length} rows`);
 
   const catalog = [];
   const shards = {};
@@ -207,6 +271,38 @@ async function main() {
     }
   }
 
+  // Carry forward everything the feeds and the caches no longer return. Without
+  // this the build is authoritative and a single title the provider drops
+  // 404s, because build-game-pages.mjs deletes the g/ page for any id that
+  // leaves the catalog. Appended last so the provider's newest-first ordering
+  // still drives the "new games" row on the home page.
+  let keptFromCatalog = 0;
+  let keptWithoutDetail = 0;
+  for (const [id, row] of preserved.rows) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const category = canonicalCategory(decodeEntities(row[2]));
+    counts.set(category, (counts.get(category) || 0) + 1);
+    catalog.push([id, decodeEntities(row[1]) || "Untitled Game", category, Array.isArray(row[3]) ? row[3].map((t) => decodeEntities(String(t))).filter(Boolean) : [], String(row[4] ?? "").trim()]);
+
+    const detail = preserved.details.get(id);
+    if (Array.isArray(detail) && detail.length === 5 && isAllowedEmbedUrl(String(detail[2] ?? "").trim())) {
+      const shard = shardOf(id);
+      (shards[shard] ??= {})[id] = [
+        decodeEntities(detail[0]) || "",
+        detail[1] ? decodeEntities(detail[1]) : "",
+        String(detail[2]).trim(),
+        toInt(detail[3]),
+        toInt(detail[4]),
+      ];
+    } else {
+      // A row with no usable detail renders a game page whose player cannot
+      // load, so it is counted here rather than discovered in production.
+      keptWithoutDetail++;
+    }
+    keptFromCatalog++;
+  }
+
   const categories = [...counts.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
@@ -233,6 +329,21 @@ async function main() {
     }
   }
 
+  // The mobile list is a set difference, not a flag: the mobile feed repeats
+  // 3,925 of the html5 feed's games, and listing those again would put a
+  // near-duplicate of category.html in the index under a second URL. Only ids
+  // that reached the catalog are listed, so the page can never link a game the
+  // catalog does not have.
+  let mobileWritten = 0;
+  if (OFFLINE) {
+    console.log("mobile.json: left as committed (no live feed to recompute it from)");
+  } else {
+    const mobileOnly = [...mobileIds].filter((id) => !primaryIds.has(id) && seen.has(id)).sort((a, b) => Number(b) - Number(a) || a.localeCompare(b));
+    const payload = { generated: builtMeta.generated, count: mobileOnly.length, ids: mobileOnly };
+    await writeFile(join(dataDir, "mobile.json"), JSON.stringify(payload));
+    mobileWritten = mobileOnly.length;
+  }
+
   const catSize = (await stat(join(dataDir, "catalog.json"))).size;
   const metaSize = (await stat(join(dataDir, "meta.json"))).size;
   let detailTotal = 0;
@@ -249,6 +360,8 @@ async function main() {
   console.log(`meta.json:         ${formatBytes(metaSize)}`);
   console.log(`details (${Object.keys(shards).length} shards): total ${formatBytes(detailTotal)}, max ${formatBytes(detailMax)}`);
   console.log(`categories: ${categories.length}, games: ${catalog.length}, skipped: ${skipped}, secondary: ${cacheFiles.length ? [...secondary].map(([f, n]) => `${f}=${n}`).join(", ") : "none"}`);
+  console.log(`kept from the previous catalog: ${keptFromCatalog}${keptWithoutDetail ? ` (${keptWithoutDetail} without a usable detail)` : ""}`);
+  if (!OFFLINE) console.log(`mobile-only games: ${mobileWritten}`);
   console.log("sitemap.xml written");
   console.log("Done ✓");
 }
@@ -258,6 +371,7 @@ async function writeSitemap(catalog, categories) {
   const urls = [
     "",
     "/category.html",
+    "/mobile.html",
     "/developers.html",
     "/tools.html",
     "/my-games.html",

@@ -4,7 +4,10 @@
    GameMonetize feed whenever the snapshot is missing.
 
    Catalog rows:  [id, title, category, tags, thumb]
-   Detail entry:  { description, instructions, url, width, height }  */
+   Detail entry:  { description, instructions, url, width, height }
+
+   data/mobile.json is the Mobile Games page's index: the ids the provider
+   serves as mobile but not as html5. See getMobileGames(). */
 
 import { shardOf } from "./shard.js";
 
@@ -206,6 +209,35 @@ export async function getCategories() {
 export async function getAllGames() {
   const { games } = await getCatalog();
   return games;
+}
+
+/* The Mobile Games page's list, resolved once per page load.
+
+   data/mobile.json holds only the ids the provider's mobile feed returns and
+   its html5 feed does not - the two feeds overlap on 3,925 of 5,001 ids, so
+   storing "is mobile" per game would have meant a near-duplicate of
+   category.html. It is a sidecar rather than a sixth field on the catalog row
+   because that row is a 5-tuple that validate.mjs enforces and three provider
+   builds write.
+
+   Order comes from the file (newest first) rather than from the catalog, so the
+   page does not have to re-sort. Ids with no catalog row are dropped: the
+   build only ever lists ids it put in the catalog, so this is a guard against a
+   stale file rather than an expected case. */
+let mobilePromise = null;
+
+export async function getMobileGames() {
+  if (mobilePromise) return mobilePromise;
+
+  mobilePromise = (async () => {
+    const list = await fetchJson("data/mobile.json");
+    const ids = Array.isArray(list && list.ids) ? list.ids.map(String) : [];
+    if (!ids.length) return [];
+    const byId = indexesFor(await getAllGames()).byId;
+    return ids.map((id) => byId.get(id)).filter(Boolean);
+  })();
+
+  return mobilePromise;
 }
 
 export async function getGame(id) {

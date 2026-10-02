@@ -153,6 +153,41 @@ async function validateShards(ids) {
   };
 }
 
+/* data/mobile.json is the Mobile Games page's whole index, and the page has no
+   other source: a stale entry here is a dead card, and an id the catalog does
+   not have is a card that links to a game page which does not exist. Cheap to
+   check because the file is a flat id list. */
+async function validateMobileList(ids) {
+  let list;
+  try {
+    list = JSON.parse(await readFile(join(dataDir, "mobile.json"), "utf8"));
+  } catch (e) {
+    fail(`mobile.json is missing or not valid JSON (run npm run build:feed): ${e.message}`);
+    return 0;
+  }
+
+  const entries = Array.isArray(list.ids) ? list.ids.map(String) : null;
+  if (!entries) {
+    fail("mobile.json has no ids array");
+    return 0;
+  }
+  if (list.count !== entries.length) {
+    fail(`mobile.json: count is ${list.count} but the ids array has ${entries.length}`);
+  }
+
+  const seen = new Set();
+  for (const id of entries) {
+    if (seen.has(id)) {
+      fail(`mobile.json: id ${id} listed twice`);
+      continue;
+    }
+    seen.add(id);
+    if (!ids.has(id)) fail(`mobile.json: id ${id} is not in the catalog`);
+  }
+
+  return seen.size;
+}
+
 async function validateHtml() {
   const pages = [];
   for (const f of (await readdir(root)).filter((f) => f.endsWith(".html"))) pages.push(f);
@@ -287,6 +322,7 @@ async function main() {
   console.log("Validating BoredPuP data and links…\n");
   const { games, ids } = await validateCatalog();
   const shard = await validateShards(ids);
+  const mobile = await validateMobileList(ids);
   const pages = await validateHtml();
   const ads = await validateAdsTxt();
   const urls = await validateRobotsAndSitemap();
@@ -296,6 +332,7 @@ async function main() {
   console.log(`  categories     ${CANONICAL_CATEGORIES.length} canonical`);
   console.log(`  detail shards  ${shard.shards} (${shard.entries} entries, skew ${shard.skew})`);
   console.log(`  largest shard  ${shard.largest}`);
+  console.log(`  mobile list    ${mobile} games`);
   console.log(`  html pages     ${pages}`);
   console.log(`  game pages     ${gamePages} prerendered`);
   console.log(`  ads.txt        ${ads} records`);

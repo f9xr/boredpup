@@ -11,7 +11,7 @@
    to pin returning visitors to a snapshot taken at install time. They are now
    cached on first use in DATA and refreshed in the background on every hit. */
 
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = `boredpup-static-${VERSION}`;
 const DATA = `boredpup-data-${VERSION}`;
 const RUNTIME = `boredpup-runtime-${VERSION}`;
@@ -22,6 +22,7 @@ const PRECACHE = [
   "./",
   "./index.html",
   "./category.html",
+  "./mobile.html",
   "./game.html",
   "./search.html",
   "./my-games.html",
@@ -41,6 +42,7 @@ const PRECACHE = [
   "./js/categories.js",
   "./js/home.js",
   "./js/category.js",
+  "./js/mobile.js",
   "./js/search.js",
   "./js/game.js",
   "./js/tools.js",
