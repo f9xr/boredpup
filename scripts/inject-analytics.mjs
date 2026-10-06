@@ -38,7 +38,7 @@ async function main() {
   for (const file of await pages()) {
     const p = join(root, file);
     let html = await readFile(p, "utf8");
-    const prefix = file.startsWith("pages/") ? "../" : "";
+    const prefix = file.split(/[\\/]/)[0] === "pages" ? "../" : "";
     const block = analyticsBlock(prefix);
     const existing = html.match(analyticsBlockRe());
 
