@@ -18,111 +18,217 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 function makeDino() {
-  const GROUND = 380;
+  const Wc = 800, Hc = 450;
+  const GROUND_Y = 400;
+  const DINO_X = 90;
+  const DINO_W = 44, DINO_H = 47;
+  const DUCK_W = 55, DUCK_H = 30;
+  const CONFIG = {
+    baseSpeed: 6.6,
+    maxSpeed: 13,
+    speedPerPoint: 0.012,
+    gravity: 0.62,
+    jumpVelocity: 10.2,
+    pixelsPerPoint: 25,
+    birdScore: 300,
+    nightEvery: 700
+  };
+  const DAY = { bg: "#050508", text: "#fcfdff", ground: "#fcfdff", cactus: "#11ff99", dino: "#fcfdff", cloud: "rgba(255,255,255,0.12)" };
+  const NIGHT = { bg: "#050508", text: "#fcfdff", ground: "#fcfdff", cactus: "#22ff99", dino: "#fcfdff", cloud: "rgba(255,255,255,0.08)" };
   const g = {
     over: false,
     score: 0,
-    t: 0,
-    speed: 340,
-    spawnT: 1.2,
-    obs: [],
-    dino: { x: 90, y: GROUND - 44, w: 34, h: 44, vy: 0, onGround: true },
+    distance: 0,
+    speed: CONFIG.baseSpeed,
+    nextSpawn: 420,
+    groundOffset: 0,
+    birdTimer: 0,
+    night: false,
+    obstacles: [],
+    clouds: [],
+    dino: {
+      y: GROUND_Y - DINO_H,
+      vy: 0,
+      w: DINO_W,
+      h: DINO_H,
+      onGround: true,
+      ducking: false,
+      step: 0,
+      legTimer: 0
+    },
     restart() {
       this.over = false;
-      this.t = 0;
-      this.speed = 340;
-      this.spawnT = 1.2;
-      this.obs = [];
       this.score = 0;
-      Object.assign(this.dino, { x: 90, y: GROUND - 44, vy: 0, onGround: true });
+      this.distance = 0;
+      this.speed = CONFIG.baseSpeed;
+      this.nextSpawn = 420;
+      this.groundOffset = 0;
+      this.birdTimer = 0;
+      this.night = false;
+      this.obstacles = [];
+      this.clouds = [];
+      Object.assign(this.dino, { y: GROUND_Y - DINO_H, vy: 0, w: DINO_W, h: DINO_H, onGround: true, ducking: false, step: 0, legTimer: 0 });
     },
     update(dt) {
       if (this.over) return;
-      this.t += dt;
-      this.speed = Math.min(880, 340 + this.t * 10);
+      const tdt = dt * 60; // step scale
+      this.speed = Math.min(CONFIG.maxSpeed, CONFIG.baseSpeed + this.score * CONFIG.speedPerPoint);
+      this.distance += this.speed * tdt;
+      this.score = Math.floor(this.distance / CONFIG.pixelsPerPoint);
+      const nightNow = Math.floor(this.score / CONFIG.nightEvery) % 2 === 1;
+      if (nightNow !== this.night) this.night = nightNow;
+      this.birdTimer += tdt;
+      this._botThink();
       const d = this.dino;
-      d.vy += 2800 * dt;
-      d.y += d.vy * dt;
-      if (d.y >= GROUND - d.h) {
-        d.y = GROUND - d.h;
-        d.vy = 0;
-        d.onGround = true;
+      if (!d.onGround) {
+        d.vy += CONFIG.gravity * tdt;
+        d.y += d.vy * tdt;
+        const floor = GROUND_Y - d.h;
+        if (d.y >= floor) { d.y = floor; d.vy = 0; d.onGround = true; }
       }
-      this.spawnT -= dt;
-      if (this.spawnT <= 0) {
-        if (this.t > 10 && Math.random() < 0.22) {
-          const y = pick([GROUND - 108, GROUND - 148]);
-          this.obs.push({ x: W + 40, y, w: 42, h: 26, type: "bird" });
-          this.spawnT = rand(0.9, 1.5);
-        } else {
-          const n = Math.random() < 0.35 ? 2 : 1;
-          const hgt = randi(34, 62);
-          for (let i = 0; i < n; i++)
-            this.obs.push({ x: W + 40 + i * 30, y: GROUND - hgt, w: 22, h: hgt, type: "cactus" });
-          this.spawnT = (this.speed > 620 ? 0.9 : 1.15) + Math.random() * 0.75;
-        }
+      if (d.onGround) {
+        d.legTimer += tdt * (this.speed / CONFIG.baseSpeed);
+        if (d.legTimer > 7) { d.legTimer = 0; d.step = 1 - d.step; }
       }
-      for (const o of this.obs) o.x -= this.speed * dt;
-      this.obs = this.obs.filter((o) => o.x + o.w > -30);
-      let target = null;
-      for (const o of this.obs) {
-        if (o.x + o.w > d.x - 4 && (!target || o.x < target.x)) target = o;
+      this.groundOffset += this.speed * tdt;
+      for (let i = 0; i < this.obstacles.length; i++) this.obstacles[i].x -= this.speed * tdt;
+      this.obstacles = this.obstacles.filter(o => o.x + o.w > -60);
+      if (this.distance >= this.nextSpawn) {
+        this._spawnObstacle();
+        this.nextSpawn = this.distance + this.speed * rand(52, 88);
       }
-      if (target && d.onGround) {
-        const gap = target.x - (d.x + d.w);
-        const lead = target.type === "bird" ? 30 : 48;
-        if (gap < this.speed * 0.26 + lead) {
-          d.vy = -1010;
-          d.onGround = false;
-        }
+      if (Math.random() < 0.008) {
+        this.clouds.push({ x: Wc + 20, y: rand(40, 110), s: rand(0.35, 0.6) });
       }
-      const pad = 6;
-      for (const o of this.obs) {
-        if (
-          d.x + pad < o.x + o.w &&
-          d.x + d.w - pad > o.x &&
-          d.y + pad < o.y + o.h &&
-          d.y + d.h - pad > o.y
-        ) {
-          this.over = true;
-        }
+      for (let c = 0; c < this.clouds.length; c++) this.clouds[c].x -= this.speed * this.clouds[c].s * tdt;
+      this.clouds = this.clouds.filter(cl => cl.x > -80);
+      const box = { x: DINO_X + 4, y: d.y + 4, w: d.w - 8, h: d.h - 8 };
+      for (let j = 0; j < this.obstacles.length; j++) {
+        const o = this.obstacles[j];
+        if (this._collide(box, { x: o.x + 3, y: o.y + 3, w: o.w - 6, h: o.h - 6 })) { this.over = true; break; }
       }
-      this.score = Math.floor((this.t * this.speed) / 14);
     },
-    draw(c) {
-      c.strokeStyle = "rgba(255,255,255,0.16)";
-      c.lineWidth = 2;
-      c.beginPath();
-      c.moveTo(0, GROUND + 2);
-      c.lineTo(W, GROUND + 2);
-      c.stroke();
-      for (const o of this.obs) {
-        if (o.type === "cactus") {
-          c.fillStyle = GREEN;
-          c.fillRect(o.x, o.y, o.w, o.h);
-          c.fillRect(o.x - 6, o.y + 8, 6, o.h - 14);
-          c.fillRect(o.x + o.w, o.y + 14, 6, o.h - 20);
+    _collide(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; },
+    _jump(){
+      const d=this.dino;
+      if(!d.onGround) return;
+      if(d.ducking){ d.ducking=false; d.h=DINO_H; d.w=DINO_W; d.y=GROUND_Y-DINO_H; }
+      d.vy=-CONFIG.jumpVelocity; d.onGround=false;
+    },
+    _duck(on){
+      const d=this.dino;
+      if(on){
+        if(!d.onGround||d.ducking) return;
+        d.ducking=true; d.h=DUCK_H; d.w=DUCK_W; d.y=GROUND_Y-DUCK_H;
+      } else {
+        if(!d.ducking) return;
+        d.ducking=false; d.h=DINO_H; d.w=DINO_W;
+        if(d.onGround) d.y=GROUND_Y-DINO_H;
+      }
+    },
+    _botThink(){
+      const d=this.dino;
+      let nearest=null;
+      for(let i=0;i<this.obstacles.length;i++){
+        if(this.obstacles[i].x + this.obstacles[i].w > DINO_X+2){ nearest=this.obstacles[i]; break; }
+      }
+      if(!nearest){ this._duck(false); return; }
+      const front=DINO_X+DINO_W;
+      const dist=nearest.x-front;
+      if(nearest.type==='cactus'){
+        this._duck(false);
+        const trigger=16.5*this.speed-22-nearest.w*0.5;
+        if(d.onGround && dist<=trigger && dist>-nearest.w) this._jump();
+      } else if(nearest.type==='bird'){
+        if(nearest.kind==='mid'){
+          const overlapping=nearest.x < DINO_X+DINO_W && nearest.x+nearest.w > DINO_X;
+          if(dist < this.speed*22 || overlapping) this._duck(true); else this._duck(false);
         } else {
-          c.fillStyle = RED;
-          c.fillRect(o.x, o.y, o.w, o.h);
-          const wing = Math.floor(this.t * 8) % 2 === 0;
-          c.beginPath();
-          c.moveTo(o.x + 8, o.y + 12);
-          c.lineTo(o.x - 10, o.y + (wing ? 2 : 22));
-          c.lineTo(o.x + 14, o.y + 16);
-          c.fill();
+          this._duck(false);
+          const trigger=16.5*this.speed-22-nearest.w*0.5;
+          if(d.onGround && dist<=trigger && dist>-nearest.w) this._jump();
+        }
+      } else this._duck(false);
+    },
+    _spawnObstacle(){
+      if(this.score>=CONFIG.birdScore && Math.random()<0.32) this._spawnBird(); else this._spawnCactus();
+    },
+    _spawnCactus(){
+      const large=Math.random()<0.5;
+      const unit=large?{w:25,h:50}:{w:17,h:35};
+      const count=1+Math.floor(Math.random()*(large?2:3));
+      const step=unit.w+2;
+      this.obstacles.push({type:'cactus',x:Wc+12,y:GROUND_Y-unit.h,w:count*step-2,h:unit.h});
+    },
+    _spawnBird(){
+      const kinds=['high','mid','low'];
+      const kind=kinds[Math.floor(Math.random()*3)];
+      let y;
+      if(kind==='high') y=GROUND_Y-DINO_H-40-8;
+      else if(kind==='mid') y=GROUND_Y-DINO_H-40+12;
+      else y=GROUND_Y-40-2;
+      this.obstacles.push({type:'bird',kind:kind,x:Wc+12,y:y,w:46,h:40});
+    },
+    draw(c){
+      const cols=this.night?NIGHT:DAY;
+      c.fillStyle=cols.bg; c.fillRect(0,0,Wc,Hc);
+      // clouds
+      c.fillStyle=cols.cloud;
+      for(let i=0;i<this.clouds.length;i++){
+        const cl=this.clouds[i]; const x=cl.x|0,y=cl.y|0;
+        c.fillRect(x,y,30,8); c.fillRect(x+9,y-6,16,8); c.fillRect(x-7,y+5,12,6);
+      }
+      // ground
+      c.fillStyle=cols.ground; c.fillRect(0,GROUND_Y,Wc,2);
+      const span=Wc+40; const off=this.groundOffset%span;
+      for(let i=0;i<30;i++){
+        let x=i*30-off; if(x<-10)x+=span; if(x>Wc+10) continue;
+        c.fillRect(x|0,GROUND_Y+4+(i%3)*3,6,1);
+      }
+      // obs
+      for(let j=0;j<this.obstacles.length;j++){
+        const o=this.obstacles[j];
+        if(o.type==='cactus'){
+          c.fillStyle=cols.cactus;
+          const u=o.type==='cactus'?{w:25,h:50}:null;
+          // simplified drawing matches style
+          const large=o.w>40;
+          const uw=large?25:17, uh=large?50:35;
+          const cnt=Math.max(1,Math.round(o.w/(uw+2)));
+          for(let k=0;k<cnt;k++){
+            const x=Math.round(o.x+k*(uw+2)), y=Math.round(o.y);
+            c.fillRect(x+Math.round(uw*0.35),y,Math.max(4,Math.round(uw*0.3)),uh);
+            c.fillRect(x,y+Math.round(uh*0.25),Math.round(uw*0.35),Math.max(3,Math.round(uh*0.12)));
+            c.fillRect(x,y+Math.round(uh*0.25),Math.max(3,Math.round(uw*0.12)),Math.round(uh*0.42));
+            c.fillRect(x+Math.round(uw*0.65),y+Math.round(uh*0.35),Math.round(uw*0.35),Math.max(3,Math.round(uh*0.12)));
+            c.fillRect(x+Math.round(uw*0.88),y+Math.round(uh*0.12),Math.max(3,Math.round(uw*0.12)),Math.round(uh*0.35));
+          }
+        } else {
+          const x=Math.round(o.x), y=Math.round(o.y);
+          const flap=Math.floor(this.birdTimer/7)%2===0;
+          c.fillStyle=cols.dino;
+          c.fillRect(x+10,y+16,24,7); c.fillRect(x+30,y+11,12,7); c.fillRect(x+40,y+14,6,4); c.fillRect(x+31,y+8,8,4);
+          if(flap) c.fillRect(x+8,y+2,26,13); else c.fillRect(x+8,y+24,26,13);
+          c.fillStyle=cols.bg; c.fillRect(x+35,y+13,3,3);
         }
       }
-      const d = this.dino;
-      c.fillStyle = INK;
-      c.fillRect(d.x, d.y, d.w, d.h);
-      c.fillRect(d.x + d.w - 4, d.y - 8, 16, 12);
-      c.fillStyle = BG;
-      c.fillRect(d.x + d.w + 6, d.y - 4, 4, 4);
-      c.fillStyle = INK;
-      const step = Math.floor(this.t * 12) % 2 === 0;
-      c.fillRect(d.x + (step ? 2 : 18), d.y + d.h, 12, 6);
-    },
+      // dino
+      const d=this.dino; const dx=DINO_X, dy=Math.round(d.y); c.fillStyle=cols.dino;
+      if(d.ducking){
+        c.fillRect(dx,dy+8,10,12); c.fillRect(dx+6,dy+10,34,16); c.fillRect(dx+34,dy+4,20,16); c.fillRect(dx+52,dy+14,3,7);
+        c.fillStyle=cols.bg; c.fillRect(dx+46,dy+7,4,4); c.fillStyle=cols.dino;
+        c.fillRect(dx+10,dy+24,8,6); c.fillRect(dx+26,dy+24,8,6);
+      } else {
+        c.fillRect(dx,dy+12,10,12); c.fillRect(dx+8,dy+16,22,18); c.fillRect(dx+22,dy+8,12,12); c.fillRect(dx+24,dy,20,16); c.fillRect(dx+38,dy+10,6,6); c.fillRect(dx+28,dy+22,8,6);
+        c.fillStyle=cols.bg; c.fillRect(dx+36,dy+4,4,4); c.fillStyle=cols.dino;
+        if(d.step===0){ c.fillRect(dx+10,dy+34,7,12); c.fillRect(dx+9,dy+44,10,3); c.fillRect(dx+21,dy+34,7,8); c.fillRect(dx+20,dy+40,10,3); }
+        else { c.fillRect(dx+10,dy+34,7,8); c.fillRect(dx+9,dy+40,10,3); c.fillRect(dx+21,dy+34,7,12); c.fillRect(dx+20,dy+44,10,3); }
+      }
+      // text
+      c.fillStyle=cols.text; c.font="bold 14px Inter, monospace"; c.textAlign="right"; c.textBaseline="alphabetic";
+      c.fillText("SCORE "+String(this.score), Wc-20, 32);
+      if(this.over){ c.textAlign="center"; c.font="bold 18px Inter, monospace"; c.fillText("GAME OVER", Wc/2, 90); }
+    }
   };
   g.restart();
   return g;
@@ -1853,7 +1959,23 @@ function renderGrid() {
     const card = e.target.closest(".auto-card");
     if (!card) return;
     const def = GAMES.find((g) => g.id === card.dataset.id);
-    if (def && def !== currentDef) loadGame(def);
+    if (def && def !== currentDef) {
+      loadGame(def);
+      // Scroll to player
+      const player = document.getElementById("player");
+      if (player) {
+        player.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  });
+  // keyboard accessibility
+  grid.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      const card = e.target.closest(".auto-card");
+      if (!card) return;
+      e.preventDefault();
+      card.click();
+    }
   });
 }
 
