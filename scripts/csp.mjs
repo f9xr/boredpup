@@ -43,7 +43,7 @@ const DIRECTIVES = [
   "font-src 'self' https://fonts.gstatic.com",
   // google-analytics.com is in img-src as well as connect-src: GA4 keeps a
   // display-pixel fallback for browsers where sendBeacon/fetch are blocked.
-  "img-src 'self' data: https://img.gamemonetize.com https://img.gamedistribution.com https://yupi.io https://shipthing.com https://1000tools.best https://smolsaas.com https://smolhunt.com https://api.producthunt.com https://racoondr.com https://launchstag.com https://www.google-analytics.com",
+  "img-src 'self' data: https://img.gamemonetize.com https://img.gamedistribution.com https://yupi.io https://shipthing.com https://1000tools.best https://smolsaas.com https://smolhunt.com https://api.producthunt.com https://racoondr.com https://launchstag.com https://verifieddr.com https://postyourstartup.co https://boostdomainrating.com https://www.google-analytics.com",
   // The live-feed fallback in js/data.js, then Google's two collection
   // endpoints: region1.google-analytics.com is where GA4 actually sends hits
   // for most of the world, and www.googletagmanager.com answers its own config
