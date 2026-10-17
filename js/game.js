@@ -1,4 +1,4 @@
-import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, setCanonical, initPwa, safeEmbedUrl, providerOf, gameHref } from "./app.js";
+import { initNav, initFooter, escapeHtml, renderGameGrid, renderSkeleton, toast, sample, initPwa, safeEmbedUrl, providerOf, gameHref } from "./app.js";
 import { getGame, getDetails, getAllGames, markRecent } from "./data.js";
 
 /* Games are reachable two ways: the prerendered g/<id>.html page that crawlers
@@ -55,6 +55,13 @@ function restartGame() {
 }
 
 function toggleFullscreen() {
+  // The class-based fallback (below) never sets document.fullscreenElement and
+  // never fires fullscreenchange, so without this branch the player could not
+  // leave pseudo-fullscreen without a reload.
+  if (playerFrame.classList.contains("fullscreen-mode") && !document.fullscreenElement) {
+    playerFrame.classList.remove("fullscreen-mode");
+    return;
+  }
   const fsEl = document.fullscreenElement;
   if (fsEl) {
     if (document.exitFullscreen) document.exitFullscreen();
@@ -89,13 +96,23 @@ function bindShortcuts() {
 }
 
 function injectVideoJsonLd({ id, title, category, tags, thumb, url, description }) {
+  // The prerendered g/ pages already ship a build-time VideoGame block. Appending
+  // a second one left two conflicting entities for the same URL, so the runtime
+  // block is only written where none exists - the game.html?id= shell.
+  const existing = document.getElementById("gameLd");
+  const prerendered = document.querySelector('script[type="application/ld+json"]');
+  if (!existing && prerendered) return;
+
+  // Both URL forms point at the prerendered page; document.baseURI honours the
+  // g/ pages' <base href="../">, so this resolves to the site root either way.
+  const canonicalGameUrl = new URL(gameHref(id), document.baseURI).href;
   const ld = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
     name: title,
     description: description || `Play ${title} - a free ${category} game, online instantly on BoredPuP.`,
     genre: category,
-    url: window.location.href,
+    url: canonicalGameUrl,
     image: thumb || undefined,
     keywords: Array.isArray(tags) ? tags.slice(0, 10) : [],
     applicationCategory: "Game",
@@ -104,7 +121,7 @@ function injectVideoJsonLd({ id, title, category, tags, thumb, url, description 
     publisher: {
       "@type": "Organization",
       name: "BoredPuP",
-      url: new URL("index.html", window.location.href).href,
+      url: new URL("index.html", document.baseURI).href,
     },
     offers: {
       "@type": "Offer",
@@ -114,11 +131,11 @@ function injectVideoJsonLd({ id, title, category, tags, thumb, url, description 
     },
   };
   if (url) ld.embedUrl = url;
-  const block = document.createElement("script");
+  const block = existing || document.createElement("script");
   block.type = "application/ld+json";
   block.id = "gameLd";
   block.textContent = JSON.stringify(ld);
-  document.head.appendChild(block);
+  if (!existing) document.head.appendChild(block);
 }
 
 async function shareLink() {
@@ -173,11 +190,23 @@ function injectWalkthrough(title) {
   host.innerHTML = "";
   host.appendChild(frame);
 
-  // If the widget never produces a player, say so instead of leaving a gap.
+  /* The widget posts {type:"walkthrough-ready"} from inside its sandbox once
+     it has appended a player (see js/walkthrough.js). Without that handshake
+     `settled` was never set anywhere, so the timeout below discarded a working
+     widget every single time. */
   let settled = false;
-  setTimeout(() => {
-    if (settled) return;
+  const onMessage = (e) => {
+    if (e.source !== frame.contentWindow) return;
+    if (!e.data || e.data.type !== "walkthrough-ready") return;
     settled = true;
+    window.removeEventListener("message", onMessage);
+  };
+  window.addEventListener("message", onMessage);
+
+  // If the widget never produces a player, say so instead of leaving a gap.
+  setTimeout(() => {
+    window.removeEventListener("message", onMessage);
+    if (settled) return;
     showWalkthroughMessage(title);
   }, 9000);
 }
@@ -268,7 +297,9 @@ async function render() {
   setMeta("#ogTitle", `${title} - Play free online`);
   setMeta("#ogDesc", `Play ${title}, a free ${category} game, in your browser right now on BoredPuP.`);
   setMeta("#ogImage", thumb);
-  setMeta("#ogUrl", window.location.href);
+  // On the game.html?id= shell the canonical target is the prerendered page,
+  // so og:url must match it rather than the query-string URL being read.
+  setMeta("#ogUrl", new URL(gameHref(id), document.baseURI).href);
   setMeta("#twCard", "summary_large_image");
   setMeta("#twTitle", `${title} - Play free online`);
   setMeta("#twDesc", `Play ${title}, a free ${category} game, right now on BoredPuP.`);
@@ -281,7 +312,9 @@ async function render() {
   setMeta("#twImageW", "512");
   setMeta("#twImageH", "384");
   document.title = `${title} - Play Free Online on BoredPuP`;
-  setCanonical();
+  // setGameCanonical() is the only canonical this page wants: it points both
+  // URL forms at g/<id>.html. Calling setCanonical() first just wrote the
+  // query-string URL and was immediately overwritten.
   setGameCanonical();
 
   crumbs.innerHTML = `
@@ -357,5 +390,5 @@ initNav();
 bindToolbar();
 bindShortcuts();
 initPwa();
-render();
+render().catch(fail);
 initFooter();

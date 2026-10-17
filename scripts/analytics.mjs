@@ -12,8 +12,8 @@
    scripts/csp.mjs and scripts/build-game-pages.mjs, not here.
 
    The block is delimited by the marker comment because the injector has to be
-   able to find and rewrite it: hand-written pages in pages/ need ../js/analytics.js
-   while the root pages need js/analytics.js, and a page that moved should be
+   able to find and rewrite it: all pages resolve js/analytics.js the same way
+   now (pages/ carries <base href="../">), and a page that drifted should be
    corrected rather than skipped. */
 
 export const ANALYTICS_ID = "G-XB845YWJVC";
@@ -27,8 +27,11 @@ export function analyticsTags(prefix = "") {
   ].join("\n  ");
 }
 
+/* No trailing newline: the rewrite path swaps only the region the block-re
+   regex matches (which excludes any following whitespace), so a trailing
+   newline here would add a blank line to every page on every run. */
 export function analyticsBlock(prefix = "") {
-  return `\n  ${analyticsTags(prefix)}\n`;
+  return `\n  ${analyticsTags(prefix)}`;
 }
 
 /* Matches an already-injected block, with or without the js path, so the

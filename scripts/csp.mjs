@@ -49,7 +49,11 @@ const DIRECTIVES = [
   // for most of the world, and www.googletagmanager.com answers its own config
   // and signal requests made by gtag.js.
   "connect-src 'self' https://rss.gamemonetize.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
-  "frame-src 'self' https://html5.gamemonetize.com https://gamemonetize.co https://gamemonetize.com https://yupi.io https://html5.gamedistribution.com",
+  // html5.gamemonetize.co is the host every GameMonetize embed actually uses
+  // (all 6,084 of them in data/details-*.json) and is exactly what
+  // js/embed.js:9 admits. The bare gamemonetize hosts are kept for any row
+  // the allowlist would accept that is not in the current snapshot.
+  "frame-src 'self' https://html5.gamemonetize.co https://html5.gamemonetize.com https://gamemonetize.co https://gamemonetize.com https://yupi.io https://html5.gamedistribution.com",
   "form-action 'self'",
   "manifest-src 'self'",
   "worker-src 'self'",
@@ -77,9 +81,20 @@ const DIRECTIVES = [
    is scoped to this delta rather than the base policy. If it stops being worth
    it, move the snippet to js/grow-faves.js, drop 'unsafe-inline' and allow a
    hash instead - do not leave the loader inline and the policy strict, which
-   fails silently with no widget and no console error worth reading. */
+   fails silently with no widget and no console error worth reading.
+
+   The same delta carries the GameMonetize walkthrough widget, which lives on
+   walkthrough.html (a hand-written page): js/walkthrough.js injects
+   api.gamemonetize.com/video.js, and that script in turn frames
+   gamemonetize.video. Neither host is in the base policy, so without these two
+   entries the widget loads nothing at all. */
 const WIDGET_HOSTS = {
-  "script-src": ["'unsafe-inline'", "https://faves.grow.me", "https://cdn.prod.euid.eu"],
+  "script-src": [
+    "'unsafe-inline'",
+    "https://faves.grow.me",
+    "https://cdn.prod.euid.eu",
+    "https://api.gamemonetize.com",
+  ],
   "connect-src": [
     "https://api.grow.me",
     "https://cdn.prod.euid.eu",
@@ -87,7 +102,7 @@ const WIDGET_HOSTS = {
     "https://urls.grow.me",
   ],
   "img-src": ["https://img.grow.me"],
-  "frame-src": ["https://app.grow.me", "https://print.grow.me"],
+  "frame-src": ["https://app.grow.me", "https://print.grow.me", "https://gamemonetize.video"],
 };
 
 export const SITE_CSP = DIRECTIVES.join("; ");

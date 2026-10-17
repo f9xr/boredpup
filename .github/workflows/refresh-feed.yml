@@ -29,14 +29,22 @@ jobs:
 
       - name: Build catalog + secondary provider
         env:
-          BOREDPUP_BASE_URL: http://www.f9xr.org/boredpup/
+          # https, not http: validate.mjs fails on http:// <loc> entries, and
+          # this value is baked into sitemap.xml and every canonical/og URL the
+          # game-page build writes.
+          BOREDPUP_BASE_URL: https://www.f9xr.org/boredpup
         run: npm run build:all
+
+      - name: Validate
+        # Gate the commit: a build that produces a sitemap pointing at pages
+        # that were not generated (or http:// URLs) must not ship.
+        run: npm test
 
       - name: Commit changes
         run: |
           git config user.name "boredpup-bot"
           git config user.email "boredpup-bot@users.noreply.github.com"
-          git add data/*.json sitemap.xml
+          git add data/*.json sitemap.xml g/
           if git diff --cached --quiet; then
             echo "No data changes"
           else

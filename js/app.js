@@ -1,6 +1,6 @@
 /* BoredPuP - shared UI helpers. */
 
-import { isFav as isFavorite, toggleFavorite } from "./data.js";
+import { isFavorite, toggleFavorite } from "./data.js";
 import { isAllowedProvider, safeEmbedUrl, providerOf } from "./embed.js";
 
 /* Re-exported so existing importers keep one import site, while the allowlist
@@ -26,6 +26,7 @@ const CANONICAL_PARAMS = {
   "category.html": ["c", "page", "sort"],
   "search.html": ["q", "page"],
   "game.html": ["id"],
+  "mobile.html": ["page", "sort"],
 };
 
 export function canonicalUrl() {

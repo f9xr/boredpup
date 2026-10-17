@@ -50,8 +50,21 @@ async function fetchWithTimeout(url, init) {
   }
 }
 
-function decodeEntities(str) {
+/* Real markup is removed from the raw feed text before any entity decoding.
+   The order matters and used to be reversed: decoding "&lt;" first turned it
+   into "<", and the tag stripper then matched from there to the next ">" or to
+   the end of the string - so on a rebuild, where already-decoded rows are fed
+   back through this function, "…designed for children &lt; 10 years" lost the
+   rest of the description and "&lt;Chomp your way…" (no ">" at all) lost all
+   298 characters. Only actual tag names are stripped, so prose such as
+   "children < 10" or "symbol (&gt; , &lt; , =)" passes through untouched even
+   after it has been decoded once. */
+const TAG_PATTERN =
+  /<\/?(?:p|br|b|i|u|em|strong|span|div|section|article|header|footer|nav|main|figure|figcaption|a|img|picture|source|video|audio|canvas|svg|object|embed|iframe|script|style|noscript|ul|ol|li|dl|dt|dd|h[1-6]|hr|table|thead|tbody|tfoot|tr|td|th|caption|blockquote|q|cite|code|pre|kbd|samp|var|small|sub|sup|s|strike|del|ins|mark|font|center|big|tt|wbr|abbr|address|bdi|bdo|details|summary|time|label|form|input|button|select|option|textarea)(?:\s[^<>]*?)?\/?>/gi;
+
+function decodePass(str) {
   return String(str ?? "")
+    .replace(TAG_PATTERN, " ")
     .replace(/&amp;mdash;/gi, " - ")
     .replace(/&mdash;/gi, " - ")
     .replace(/&amp;ndash;/gi, " - ")
@@ -66,11 +79,17 @@ function decodeEntities(str) {
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&amp;/g, "&")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/?[^>]+(>|$)/g, "")
     .replace(/\s{2,}/g, " ")
     .replace(/^[\s-]+|[\s-]+$/g, "")
     .trim();
+}
+
+function decodeEntities(str) {
+  // Two passes unroll double-escaped input ("&amp;lt;" -> "&lt;" -> "<") in
+  // one build instead of one level per nightly run. The pass is idempotent
+  // (verified over every catalog row and detail shard), so feeding preserved
+  // rows through it on every rebuild is a no-op rather than data loss.
+  return decodePass(decodePass(String(str ?? "")));
 }
 
 function toInt(value) {
@@ -92,7 +111,9 @@ const OFFLINE = process.argv.includes("--offline");
 /* Reconstructs a provider-shaped feed from the committed snapshot. */
 async function loadOfflineFeed() {
   const catalog = JSON.parse(await readFile(join(dataDir, "catalog.json"), "utf8"));
-  const details = {};
+  // Null prototype: the merge below ingests provider-derived keys, and a
+  // "__proto__" key in a parsed shard must not reassign this object's prototype.
+  const details = Object.create(null);
   for (const file of (await readdir(dataDir)).filter((f) => /^details-\d+\.json$/.test(f))) {
     Object.assign(details, JSON.parse(await readFile(join(dataDir, file), "utf8")));
   }
@@ -132,7 +153,7 @@ async function loadPreserved() {
   for (const row of catalog.games || []) {
     if (Array.isArray(row) && row[0]) rows.set(String(row[0]), row);
   }
-  for (const file of (await readdir(dataDir)).filter((f) => /^details-\d+/.test(f))) {
+  for (const file of (await readdir(dataDir)).filter((f) => /^details-\d+\.json$/.test(f))) {
     const shard = JSON.parse(await readFile(join(dataDir, file), "utf8"));
     for (const [id, entry] of Object.entries(shard)) details.set(id, entry);
   }
@@ -266,8 +287,11 @@ async function main() {
         }
         secondary.set(file, merged);
       }
-    } catch {
-      /* unreadable cache - skip */
+    } catch (err) {
+      // Fail loudly rather than silently dropping a provider: an unreadable
+      // cache used to be skipped with no signal, so a truncated gd-cache.json
+      // just quietly stopped contributing 500 games and the build still passed.
+      console.warn(`  ! skipping unreadable cache ${file}: ${err && err.message ? err.message : err}`);
     }
   }
 
@@ -369,11 +393,12 @@ async function main() {
 async function writeSitemap(catalog, categories) {
   const base = (process.env.BOREDPUP_BASE_URL || "https://www.f9xr.org/boredpup/").replace(/\/+$/, "");
   const urls = [
-    "",
+    // Trailing slash: index.html's canonical is `${BASE}/`, and a crawler given
+    // the bare form would only ever see it 301 first.
+    "/",
     "/category.html",
     "/mobile.html",
     "/developers.html",
-    "/tools.html",
     "/my-games.html",
     "/pages/about.html",
     "/pages/contact.html",

@@ -205,16 +205,19 @@ async function validateHtml() {
       if (/\/\/[^/]*\/[^/]*\/\//.test(url)) fail(`${page}: double slash in "${url}"`);
     }
 
-    // Internal hrefs must resolve to a real file.
+    // Internal hrefs must resolve to a real file. Resolve against the page's
+    // own directory, but honour <base href> when present: pages/*.html carry
+    // <base href="../"> and reference root-relative paths from there.
+    const dir = dirname(join(root, page));
+    const baseHref = (/<base href="([^"]+)">/.exec(html) || [])[1];
+    const baseDir = baseHref ? join(dir, baseHref) : dir;
     for (const m of html.matchAll(/(?:href|src)="([^"#][^"]*)"/g)) {
       const ref = m[1];
       if (/^(https?:|mailto:|data:|\/\/)/.test(ref)) continue;
       const [path] = ref.split(/[?#]/);
       if (!path) continue;
       try {
-        // Resolve relative to the page's own directory, not the repo root:
-        // pages/*.html legitimately reference ../css/style.css.
-        await stat(join(dirname(join(root, page)), path));
+        await stat(join(baseDir, path));
       } catch {
         fail(`${page}: references missing file "${path}"`);
       }

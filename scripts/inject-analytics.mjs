@@ -38,8 +38,10 @@ async function main() {
   for (const file of await pages()) {
     const p = join(root, file);
     let html = await readFile(p, "utf8");
-    const prefix = file.split(/[\\/]/)[0] === "pages" ? "../" : "";
-    const block = analyticsBlock(prefix);
+    // Every page now resolves root-relative paths through its own <base> (the
+    // root pages have no <base> and live at the root; pages/ carries
+    // <base href="../">), so the tag is the same on all of them.
+    const block = analyticsBlock("");
     const existing = html.match(analyticsBlockRe());
 
     if (existing) {

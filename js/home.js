@@ -1,4 +1,4 @@
-import { initNav, initFooter, renderCategoryCards, catIcon, renderGameGrid, renderSkeleton, sample, setCanonical, initPwa } from "./app.js";
+import { initNav, initFooter, renderCategoryCards, renderGameGrid, renderSkeleton, sample, setCanonical, initPwa } from "./app.js";
 import { getAllGames, getCategories, randomGame, getRecent } from "./data.js";
 
 const PAGE_SIZE = 15;
@@ -7,16 +7,6 @@ let initialGoodPicks = [];
 
 function statCount(count) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 0 }).format(count) + "+";
-}
-
-async function loadPills() {
-  const host = document.getElementById("categoryGrid");
-  try {
-    const cats = await getCategories();
-    renderCategoryCards(host, cats, null);
-  } catch {
-    host.innerHTML = `<a class="category-card accent-orange" href="category.html"><span class="cat-icon">${catIcon("Puzzles")}</span><span class="cat-name">Puzzles</span></a><a class="category-card accent-blue" href="category.html"><span class="cat-icon">${catIcon("Racing")}</span><span class="cat-name">Racing</span></a><a class="category-card accent-red" href="category.html"><span class="cat-icon">${catIcon("Arcade")}</span><span class="cat-name">Arcade</span></a>`;
-  }
 }
 
 function loadNewGrid() {

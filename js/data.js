@@ -46,8 +46,17 @@ function indexesFor(games) {
   return ix;
 }
 
+/* Markup is stripped from the raw feed text before entity decoding, and only
+   actual tag names match - the same rule scripts/build-feed.mjs applies. The
+   order matters: decoding "&lt;" first would turn provider text such as
+   "children &lt; 10" into something the stripper then eats up to the next ">"
+   or the end of the string. */
+const TAG_PATTERN =
+  /<\/?(?:p|br|b|i|u|em|strong|span|div|section|article|header|footer|nav|main|figure|figcaption|a|img|picture|source|video|audio|canvas|svg|object|embed|iframe|script|style|noscript|ul|ol|li|dl|dt|dd|h[1-6]|hr|table|thead|tbody|tfoot|tr|td|th|caption|blockquote|q|cite|code|pre|kbd|samp|var|small|sub|sup|s|strike|del|ins|mark|font|center|big|tt|wbr|abbr|address|bdi|bdo|details|summary|time|label|form|input|button|select|option|textarea)(?:\s[^<>]*?)?\/?>/gi;
+
 function decodeEntities(str) {
   return String(str ?? "")
+    .replace(TAG_PATTERN, " ")
     .replace(/&amp;mdash;/gi, "-")
     .replace(/&mdash;/gi, "-")
     .replace(/&amp;ndash;/gi, "–")
@@ -61,8 +70,6 @@ function decodeEntities(str) {
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&amp;/g, "&")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/?[^>]+(>|$)/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
@@ -146,7 +153,7 @@ function snapshotAgeMs(parsed) {
 export async function getCatalog() {
   if (catalogPromise) return catalogPromise;
 
-  catalogPromise = (async () => {
+  const promise = (async () => {
     try {
       const local = localStorage.getItem(LOCAL_KEY);
       if (local) {
@@ -184,7 +191,15 @@ export async function getCatalog() {
     }
   })();
 
-  return catalogPromise;
+  catalogPromise = promise;
+  // A rejected promise kept here would poison every later await for the rest
+  // of the session (offline start, one failed request). Drop it so the next
+  // call retries instead.
+  promise.catch(() => {
+    if (catalogPromise === promise) catalogPromise = null;
+  });
+
+  return promise;
 }
 
 export async function getMeta() {
@@ -229,7 +244,7 @@ let mobilePromise = null;
 export async function getMobileGames() {
   if (mobilePromise) return mobilePromise;
 
-  mobilePromise = (async () => {
+  const promise = (async () => {
     const list = await fetchJson("data/mobile.json");
     const ids = Array.isArray(list && list.ids) ? list.ids.map(String) : [];
     if (!ids.length) return [];
@@ -237,7 +252,12 @@ export async function getMobileGames() {
     return ids.map((id) => byId.get(id)).filter(Boolean);
   })();
 
-  return mobilePromise;
+  mobilePromise = promise;
+  promise.catch(() => {
+    if (mobilePromise === promise) mobilePromise = null;
+  });
+
+  return promise;
 }
 
 export async function getGame(id) {
@@ -254,8 +274,10 @@ export async function getDetails(id) {
     return detailsCache[id];
   }
 
+  let shardLoaded = false;
   try {
     const shard = await fetchJson(`data/details-${shardOf(id)}.json`);
+    shardLoaded = true;
     const entry = shard[id];
     if (entry) {
       const out = {
@@ -269,11 +291,14 @@ export async function getDetails(id) {
       return out;
     }
   } catch {
-    /* shard missing, fall through */
+    /* shard missing or unreadable - transient, do not cache the miss */
   }
 
   const live = liveById.get(id);
-  cacheDetails(id, live || null);
+  // Only a successfully loaded shard can prove the id has no entry. A failed
+  // fetch must not be memoised, or one offline hiccup permanently shows the
+  // "failed" state for that game until reload.
+  if (shardLoaded) cacheDetails(id, live || null);
   return live || null;
 }
 

@@ -11,6 +11,7 @@ const query = (params.get("q") || "").trim();
 
 let allGames = [];
 let results = [];
+let catalogFailed = false;
 let page = Math.max(1, parseInt(params.get("page") || "1", 10) || 1);
 let totalPages = 1;
 
@@ -39,7 +40,8 @@ function pageUrl(target) {
   const p = new URLSearchParams();
   if (query) p.set("q", query);
   if (target > 1) p.set("page", String(target));
-  return `search.html?${p.toString()}`;
+  const qs = p.toString();
+  return `search.html${qs ? `?${qs}` : ""}`;
 }
 
 function renderPager() {
@@ -97,6 +99,20 @@ function loadPage() {
 
 function render() {
   const grid = document.getElementById("grid");
+
+  // A failed catalog load used to fall through into the normal search flow
+  // with an empty list, so the real error was overwritten by a misleading
+  // "Nothing found". The load failure wins.
+  if (catalogFailed) {
+    document.getElementById("resultsCount").textContent = "Catalog unavailable - refresh to try again.";
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="big">Couldn't load the catalog</div>
+        <p>Please refresh the page to try again.</p>
+      </div>`;
+    return;
+  }
+
   if (!query) {
     document.title = "Search games - BoredPuP";
     grid.innerHTML = `
@@ -159,11 +175,7 @@ async function init() {
   try {
     allGames = await getAllGames();
   } catch {
-    document.getElementById("grid").innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="big">Couldn't load the catalog</div>
-        <p>Please refresh the page to try again.</p>
-      </div>`;
+    catalogFailed = true;
   }
 
   render();

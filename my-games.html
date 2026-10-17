@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'unsafe-inline' https://faves.grow.me https://cdn.prod.euid.eu; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.gamemonetize.com https://img.gamedistribution.com https://yupi.io https://shipthing.com https://1000tools.best https://smolsaas.com https://smolhunt.com https://api.producthunt.com https://racoondr.com https://launchstag.com https://www.google-analytics.com https://img.grow.me; connect-src 'self' https://rss.gamemonetize.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.grow.me https://cdn.prod.euid.eu https://some.growplow.events https://urls.grow.me; frame-src 'self' https://html5.gamemonetize.com https://gamemonetize.co https://gamemonetize.com https://yupi.io https://html5.gamedistribution.com https://app.grow.me https://print.grow.me; form-action 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'unsafe-inline' https://faves.grow.me https://cdn.prod.euid.eu https://api.gamemonetize.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.gamemonetize.com https://img.gamedistribution.com https://yupi.io https://shipthing.com https://1000tools.best https://smolsaas.com https://smolhunt.com https://api.producthunt.com https://racoondr.com https://launchstag.com https://www.google-analytics.com https://img.grow.me; connect-src 'self' https://rss.gamemonetize.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.grow.me https://cdn.prod.euid.eu https://some.growplow.events https://urls.grow.me; frame-src 'self' https://html5.gamemonetize.co https://html5.gamemonetize.com https://gamemonetize.co https://gamemonetize.com https://yupi.io https://html5.gamedistribution.com https://app.grow.me https://print.grow.me https://gamemonetize.video; form-action 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My Games - Favorites & Recently Played - BoredPuP</title>
   <meta name="description" content="Your saved games and recently played on BoredPuP - stored privately in your browser.">
@@ -51,7 +51,7 @@
       <div class="nav-search">
         <form class="search" action="search.html" method="get" role="search">
           <svg class="search-icon lucide lucide-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="search" name="q" placeholder="Search 5,000+ games…" aria-label="Search games">
+          <input type="search" name="q" placeholder="Search 6,700+ games…" aria-label="Search games">
         </form>
         <a class="btn btn-primary" href="#" data-action="random">Play now</a>
       </div>
@@ -84,13 +84,16 @@
       </div>
 
       <div class="my-tabs">
-        <button class="my-tab active" data-tab="recent" type="button">Recently played</button>
-        <button class="my-tab" data-tab="favs" type="button">Favorites <span id="favCount"></span></button>
+        <div role="tablist" aria-label="Saved games" style="display: contents;">
+          <button class="my-tab active" data-tab="recent" id="tabRecent" type="button" role="tab" aria-selected="true" aria-controls="recentGrid">Recently played</button>
+          <button class="my-tab" data-tab="favs" id="tabFavs" type="button" role="tab" aria-selected="false" aria-controls="favGrid" tabindex="-1">Favorites <span id="favCount"></span></button>
+        </div>
         <button class="btn btn-outline btn-sm" id="clearAll" type="button" style="margin-left: auto;">Clear history</button>
       </div>
 
       <div id="myGrid">
-        <div class="game-grid" id="recentGrid"></div>
+        <div class="game-grid" id="recentGrid" role="tabpanel" aria-labelledby="tabRecent"></div>
+        <div class="game-grid" id="favGrid" role="tabpanel" aria-labelledby="tabFavs" hidden></div>
       </div>
     </div>
   </main>

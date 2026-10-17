@@ -140,6 +140,7 @@ function page(game, detail) {
 <head>
   <meta charset="utf-8">
   ${CSP_TAG}
+  <base href="../">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeHtml(metaDesc)}">
@@ -166,7 +167,6 @@ function page(game, detail) {
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
-  <base href="../">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -217,6 +217,29 @@ function page(game, detail) {
           <div class="info-card" id="aboutCard" style="display:none">
             <h2>About this game</h2><p id="description"></p>
           </div>
+          <section style="margin-top:var(--space-xxxl)">
+            <div class="sec-head">
+              <div>
+                <h2 class="display-lg">Game walkthrough</h2>
+                <p class="sub mute">Watch how it's done before you play</p>
+              </div>
+            </div>
+            <div class="code-window">
+              <div class="code-window-bar">
+                <span class="traffic-dots" aria-hidden="true">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </span>
+                <span class="code-window-title">gamemonetize-video · walkthrough</span>
+              </div>
+              <div class="code-window-body">
+                <div id="walkthroughSlot">
+                  <div id="gamemonetize-video">
+                    <div class="walkthrough-empty" style="padding:var(--space-lg)">Preparing walkthrough…</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
           <section id="relatedSection" style="margin-top:var(--space-xxxl)">
             <div class="sec-head" style="margin-bottom:var(--space-xl)">
               <div><h2 class="display-lg" id="relatedTitle">More to play</h2><p class="sub mute">Hand-picked from the same family</p></div>

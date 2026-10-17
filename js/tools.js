@@ -8,6 +8,12 @@ function bindTabs() {
   const panels = [...document.querySelectorAll(".tool-section")];
   if (!tabs.length) return;
 
+  // Assign ids first: the panel loop below points aria-labelledby at them, and
+  // running it before this assigned ids wrote aria-labelledby="" (empty).
+  tabs.forEach((btn) => {
+    btn.id = btn.id || `${btn.dataset.tab}-tab`;
+  });
+
   panels.forEach((panel) => {
     panel.setAttribute("role", "tabpanel");
     const label = tabs.find((t) => t.dataset.tab === panel.id.replace("tab-", ""));
@@ -29,7 +35,6 @@ function bindTabs() {
 
   tabs.forEach((btn, i) => {
     const panelId = `tab-${btn.dataset.tab}`;
-    btn.id = btn.id || `${btn.dataset.tab}-tab`;
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-controls", panelId);
     btn.tabIndex = btn.classList.contains("active") ? 0 : -1;

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -151,6 +151,24 @@ async function main() {
   const details = {};
   for (const g of games) {
     details[g.id] = [g.description || "", g.instructions || "", g.url, g.width, g.height];
+  }
+
+  // A flaky network (or yupi.io changing its markup) can yield zero or far
+  // fewer parses than last time. Overwriting the cache in that state would
+  // silently drop every yupi game from the next catalog build, so keep the
+  // existing cache instead.
+  const prev = await readFile(OUT, "utf8").then(JSON.parse).catch(() => null);
+  if (prev && prev.count) {
+    if (!rows.length) {
+      console.error(`Parsed 0 games but the cache holds ${prev.count} - keeping data/yupi-cache.json`);
+      process.exit(1);
+    }
+    if (rows.length < prev.count / 2 && !process.env.BOREDPUP_YUPI_FORCE) {
+      console.error(
+        `Parsed only ${rows.length} of the previous ${prev.count} - keeping data/yupi-cache.json (set BOREDPUP_YUPI_FORCE=1 to override)`
+      );
+      process.exit(1);
+    }
   }
 
   const payload = { generated: new Date().toISOString(), count: rows.length, rows, details };

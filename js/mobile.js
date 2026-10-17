@@ -46,7 +46,8 @@ function pageUrl(target) {
   const p = new URLSearchParams();
   if (sortBy !== "newest") p.set("sort", sortBy);
   if (target > 1) p.set("page", String(target));
-  return `mobile.html?${p.toString()}`;
+  const qs = p.toString();
+  return `mobile.html${qs ? `?${qs}` : ""}`;
 }
 
 function setCountText() {

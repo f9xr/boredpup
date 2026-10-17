@@ -11,12 +11,14 @@
    to pin returning visitors to a snapshot taken at install time. They are now
    cached on first use in DATA and refreshed in the background on every hit. */
 
-const VERSION = "v6";
+const VERSION = "v7";
 const CACHE = `boredpup-static-${VERSION}`;
 const DATA = `boredpup-data-${VERSION}`;
-const RUNTIME = `boredpup-runtime-${VERSION}`;
+// Runtime-visited pages go here, not into CACHE: trimming an unbounded cache
+// must never evict the precached shells.
+const PAGES = `boredpup-pages-${VERSION}`;
 
-const CACHES = [CACHE, DATA, RUNTIME];
+const CACHES = [CACHE, DATA, PAGES];
 
 const PRECACHE = [
   "./",
@@ -36,6 +38,7 @@ const PRECACHE = [
   "./pages/terms.html",
   "./css/style.css",
   "./js/app.js",
+  "./js/analytics.js",
   "./js/data.js",
   "./js/shard.js",
   "./js/embed.js",
@@ -63,6 +66,8 @@ const PRECACHE = [
 
 // Detail shards are large; keep the DATA cache from growing without bound.
 const DATA_MAX_ENTRIES = 80;
+// Visited HTML pages (mostly g/<id>.html) accumulate the same way.
+const PAGES_MAX_ENTRIES = 40;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -114,22 +119,41 @@ async function handleNavigate(req) {
   try {
     const res = await fetch(req);
     if (res && res.ok) {
-      putIn(CACHE, req, res.clone());
+      const pageCache = await caches.open(PAGES);
+      pageCache
+        .put(req, res.clone())
+        .then(() => trimCache(PAGES, PAGES_MAX_ENTRIES))
+        .catch(() => {});
     }
     return res;
   } catch {
-    const cached = await caches.match(req, { cacheName: CACHE });
+    const cached =
+      (await caches.match(req, { cacheName: PAGES })) ||
+      (await caches.match(req, { cacheName: CACHE }));
     if (cached) return cached;
 
     // A prerendered game page (g/<id>.html) has no cached copy of its own
-    // offline - 5,621 of them are not precached. game.js reads the id out of the
-    // path, so the cached shell hydrates the same game. Its <base href="../">
-    // is not present in the shell, so the relative asset URLs resolve from the
-    // root, which is where they live.
+    // offline - thousands of them are not precached. game.js reads the id out
+    // of the path, so the cached game.html shell hydrates the same game.
+    // The shell has no <base>, and relative URLs resolve against the
+    // REQUEST's URL (/g/<id>.html), not against wherever the body came from -
+    // so without an injected base its css/js would resolve to /g/css/... and
+    // 404. The injected <base href="../"> matches what build-game-pages.mjs
+    // writes, sending every relative URL to the root where the precache holds
+    // it.
     const path = new URL(req.url).pathname;
     if (/\/g\/[^/]+\.html$/.test(path)) {
       const shell = await caches.match("./game.html", { cacheName: CACHE });
-      if (shell) return shell;
+      if (shell) {
+        const html = (await shell.clone().text()).replace(
+          '<meta charset="utf-8">',
+          '<meta charset="utf-8">\n<base href="../">'
+        );
+        return new Response(html, {
+          status: 200,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
     }
 
     const fallback =
